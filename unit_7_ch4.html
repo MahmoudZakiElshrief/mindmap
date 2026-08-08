@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خارطة مفاهيم الفصل الرابع - هندسة الأيقونات بالذكاء الاصطناعي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Arabic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans Arabic"', 'sans-serif'],
+                    },
+                    width: {
+                        '64': '23rem', // Explicit 23rem width for zero-collision readability
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .bg-grid {
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+        }
+
+        .node-card {
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+            backdrop-filter: blur(12px);
+        }
+        
+        .node-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.14);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-slate-50 text-slate-800 antialiased bg-grid select-none">
+
+    <!-- Top Navigation Header -->
+    <header class="h-16 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20">
+                <i class="fa-solid fa-icons text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">الوحدة السابعة - الفصل الرابع: هندسة الأيقونات بالذكاء الاصطناعي</h1>
+                <p class="text-[11px] text-slate-500 hidden sm:block">MIND MAP DASHBOARD - AI Icon Engineering, Prompt Templates & Consistency</p>
+            </div>
+        </div>
+
+        <!-- Toolbar Controls -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Search Bar -->
+            <div class="relative w-48 lg:w-64 hidden md:block">
+                <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="بحث في محاور هندسة الأيقونات..." 
+                    class="w-full pl-3 pr-9 py-1.5 text-xs bg-slate-100 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-lg outline-none transition-all">
+            </div>
+
+            <!-- View Layout Mode Toggle -->
+            <div class="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center text-xs">
+                <button onclick="setLayoutMode('radial')" id="btnRadial" class="px-2.5 py-1 rounded-md font-medium transition bg-white text-indigo-600 shadow-sm">
+                    <i class="fa-solid fa-circle-nodes ml-1"></i>شعاعي
+                </button>
+                <button onclick="setLayoutMode('tree')" id="btnTree" class="px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900">
+                    <i class="fa-solid fa-sitemap ml-1"></i>هيكلي
+                </button>
+            </div>
+
+            <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
+
+            <!-- Actions -->
+            <button onclick="fitToView()" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition" title="احتواء الكل في الشاشة">
+                <i class="fa-solid fa-expand text-indigo-600"></i>
+                <span class="hidden sm:inline">إعادة ضبط</span>
+            </button>
+            <button onclick="toggleExpandAll()" id="expandBtn" class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-folder-tree text-xs"></i>
+                <span id="expandBtnText" class="hidden sm:inline">طي الكل</span>
+            </button>
+            <button onclick="togglePresentationMode()" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                <i class="fa-solid fa-circle-play text-indigo-400"></i>
+                <span class="hidden md:inline">عرض تقديمى</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 relative flex overflow-hidden">
+        
+        <!-- Interactive Canvas Area -->
+        <main id="canvasContainer" class="flex-1 h-full w-full relative cursor-grab active:cursor-grabbing overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-[1400px] h-[1400px] rounded-full bg-indigo-100/30 blur-3xl opacity-60"></div>
+            </div>
+
+            <!-- SVG Connections Layer -->
+            <svg id="svgLayer" class="absolute inset-0 w-full h-full pointer-events-none z-0"></svg>
+
+            <!-- DOM Nodes Layer -->
+            <div id="nodesContainer" class="absolute inset-0 z-10 origin-top-left"></div>
+
+            <!-- Floating Control Tools -->
+            <div class="absolute bottom-6 left-6 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 shadow-lg">
+                <button onclick="zoomIn()" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg text-base font-bold transition" title="تكبير">+</button>
+                <button onclick="zoomOut()" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg text-base font-bold transition" title="تصغير">-</button>
+                <button onclick="fitToView()" class="w-8 h-8 flex items-center justify-center text-indigo-600 hover:bg-indigo-50 rounded-lg text-xs font-bold transition" title="توسيط وملاءمة الشاشة">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </button>
+            </div>
+
+            <!-- Legend Overlay -->
+            <div class="absolute bottom-6 right-6 z-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm hidden lg:flex items-center gap-4 text-xs text-slate-600">
+                <span class="font-bold text-slate-800">محاور الفصل الرابع:</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span> مفهوم الأيقونة ووظيفتها</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> قواعد التبسيط والوضوح</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span> اتساق المجموعات البصرية</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> القالب الاحترافي للبرومبتات</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span> الأخطاء الشائعة والقواعد</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span> النماذج والأوامر العملية</span>
+            </div>
+        </main>
+
+        <!-- Right Side Detail Drawer -->
+        <aside id="detailDrawer" class="w-full sm:w-[480px] bg-white border-r border-slate-200 shadow-2xl z-30 flex flex-col transition-all duration-300 transform translate-x-full absolute top-0 bottom-0 right-0">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                <div class="flex items-center gap-2.5">
+                    <span id="drawerBadge" class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"></span>
+                    <div>
+                        <span id="drawerCategory" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">الوحدة 7 - الفصل الرابع</span>
+                        <h2 id="drawerTitle" class="text-base font-bold text-slate-900 leading-tight">--</h2>
+                    </div>
+                </div>
+                <button onclick="closeDrawer()" class="w-8 h-8 rounded-lg hover:bg-slate-200/70 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 flex-1 overflow-y-auto space-y-6 text-slate-700 text-xs leading-relaxed" id="drawerContent">
+                <!-- Dynamic Content -->
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+                <span>انقر على أي عنصر لاستعراض الشرح والتطبيقات الهندسية</span>
+                <button onclick="closeDrawer()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg transition font-semibold">إغلاق</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Presentation Mode Fullscreen Overlay -->
+    <div id="presentationOverlay" class="fixed inset-0 bg-slate-950/95 text-white z-50 hidden flex-col justify-between p-6 sm:p-10 backdrop-blur-xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></div>
+                <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-300">عرض التقديم - الوحدة 7 الفصل الرابع: هندسة الأيقونات بالذكاء الاصطناعي (AI Icon Engineering)</span>
+            </div>
+            <button onclick="togglePresentationMode()" class="text-slate-400 hover:text-white flex items-center gap-2 text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-xmark"></i> إنهاء العرض
+            </button>
+        </div>
+
+        <div id="slideContent" class="max-w-4xl mx-auto w-full py-6 my-auto transition-all duration-300">
+            <!-- Slide HTML -->
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+                <span id="slideIndex">1</span> / <span id="totalSlides">6</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="prevSlide()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-white font-medium flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-right"></i> السابق
+                </button>
+                <button onclick="nextSlide()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-medium flex items-center gap-2 transition">
+                    التالي <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        const mindMapData = {
+            id: 'root',
+            title: 'هندسة الأيقونات بالذكاء الاصطناعي (AI Icon Engineering)',
+            subtitle: 'الوحدة السابعة - الفصل الرابع: تمثيل المفاهيم بأبسط شكل بصري مستقل',
+            icon: 'fa-icons',
+            color: '#4f46e5',
+            children: [
+                {
+                    id: 'icon_fundamentals',
+                    title: '1. مفهوم الأيقونة ووظيفتها',
+                    subtitle: 'لغة بصرية مختصرة للوصول المباشر للمنى',
+                    icon: 'fa-lightbulb',
+                    color: '#4f46e5',
+                    description: 'تختلف الأيقونة عن الصورة؛ فالصورة تنقل مشهداً أو قصة متكاملة، بينما تهدف الأيقونة إلى تمثيل مفهوم بأبسط شكل ممكن دون الحاجة للشرح.',
+                    nodes: [
+                        { label: 'الوظيفة المباشرة للأيقونة', text: 'توصيل المعنى بسرعة متناهية.', detail: 'لا تقاس جودة الأيقونة بجمالها أو تفاصيلها الكثيرة بل بقدرة المستخدم على إدراك وظيفتها فور النظر إليها (مثل رموز الطباعة والبحث والملفات).' },
+                        { label: 'البدء بالمفهوم وليس الشكل', text: 'تحديد المعنى التجريدي قبل وصف الشكل النهائي.', detail: 'بدلاً من البدء بـ (دائرة زرقاء مع ظل)، تسأل: ما المفهوم؟ (المعرفة؟ الكتاب؟ المساعدة؟) ليكون رمز الأيقونة معبراً وصريحاً.' },
+                        { label: 'العناصر الثلاثة لنجاح الأيقونة', text: 'وضوح الفكرة + بساطة التصميم + قابلية الاستخدام.', detail: 'أن تكون الفكرة غير قابلة للبس، والتصميم خالياً من الحشو، وقابلاً للعرض بوضوح حاد حتى عند حجم بضعة بكسلات صغيرة.' },
+                        { label: 'الأيقونة كأنظمة بواجهات التفاعل', text: 'دعم تجربة المستخدم UI/UX.', detail: 'الأيقونات عناصر وظيفية مصممة للعرض داخل التطبيقات والواجهات والعروض التقديمية لتسهيل الإبحار السريع.' }
+                    ]
+                },
+                {
+                    id: 'simplicity_and_clarity',
+                    title: '2. قواعد التبسيط والوضوح البصري',
+                    subtitle: 'البساطة قوة وليست ضعفاً في تصميم الأيقونات',
+                    icon: 'fa-vector-square',
+                    color: '#2563eb',
+                    description: 'حذف التفاصيل غير الضرورية يعد تحسيناً هندسياً للتصميم؛ فالأيقونة ليست رسماً توضيحياً مصغراً.',
+                    nodes: [
+                        { label: 'قاعدة المفهوم الواحد', text: 'تجنب جمع عدة مفاهيم في أيقونة واحدة.', detail: 'في أيقونة الأمن السيبراني مثلاً: اختر رمزاً حاسماً واحداً كالدرع أو القفل، ولا تجمع بين خادم، حاسب، قفل، شبكة، كود في مساحة صغيرة صعبة القراءة.' },
+                        { label: 'حذف الحشو لتعزيز القراءة', text: 'الحفاظ على الوضوح عند بضع عشرات من البكسلات.', detail: 'كلما صغر حجم الأيقونة، أصبحت التفاصيل المعقدة شوائب بصرية؛ التبسيط يرفع القابلية للتكيف والقراءة.' },
+                        { label: 'الاعتماد على الأشكال الهندسية النظيفة', text: 'Clean Geometric Shapes.', detail: 'استخدام الخطوط القياسية المنظمة، والدوائر والمربعات ذات النسب المتوازنة، لتأسيس بناء بصري مستقر.' },
+                        { label: 'استبعاد المؤثرات البصرية المشتتة', text: 'Minimal visual noise.', detail: 'تجنب الظلال المعقدة والتدرجات الكثيرة والزخارف التي تفقد الأيقونة قيمتها الوظيفية الحركية.' }
+                    ]
+                },
+                {
+                    id: 'group_consistency',
+                    title: '3. اتساق المجموعات البصرية (Icon Sets)',
+                    subtitle: 'توحيد السمات لتظهر المجموعة كنظام موحد',
+                    icon: 'fa-object-group',
+                    color: '#7c3aed',
+                    description: 'من النادر إنتاج أيقونة واحدة منفردة؛ اتساق المجموعة البصرية أهم هندسياً من جمال كل أيقونة مفردة.',
+                    nodes: [
+                        { label: 'عناصر توحيد المجموعة', text: 'سماكة الخطوط + الزوايا + الألوان + النمط.', detail: 'تثبيت Stroke Width، درجة انحناء الزوايا (Rounded Corners)، وتوحيد اللون الأحادي أو palette الأساسي.' },
+                        { label: 'طلب المجموعة دفعة واحدة بالبرومبت', text: 'توليد Cohesive Icon Set في أمر واحد.', detail: 'صياغة البرومبت لتوليد كامل الأيقونات معاً يضمن التزام الذكاء الاصطناعي بنفس معايير الرسم والنسب بصرئياً.' },
+                        { label: 'تجنب الخلط بين الأساليب', text: 'عدم دمج الخطوط مع المجسمات.', detail: 'إذا كانت إحدى الأيقونات بخطوط رفيعة (Line Icon) والأخرى ممتلئة (Filled) وثالثة 3D، ستفقد الواجهة تجانسها الهيكلي.' },
+                        { label: 'الخلفية الشفافة الموحدة', text: 'Transparent Background.', detail: 'التأكيد على توليد الأيقونات بخلفية شفافة ونظيفة لتسهيل قصها واستخدامها المباشر في التصاميم.' }
+                    ]
+                },
+                {
+                    id: 'icon_prompt_template',
+                    title: '4. القالب الاحترافي الموحد للبرومبتات',
+                    subtitle: 'Professional Icon Prompt Template',
+                    icon: 'fa-cubes',
+                    color: '#059669',
+                    description: 'هيكل مدروس ينظم صياغة برومبت الأيقونة لضمان تحويل الفكرة إلى رمز ناقل للمعنى بأعلى دقة.',
+                    nodes: [
+                        { label: 'المفهوم (Concept)', text: 'المعنى التجريدي المراد التعبير عنه.', detail: 'تحديد الفكرة مثل: Artificial Intelligence, Cybersecurity, Project Management.' },
+                        { label: 'العنصر البصري الرئيسي (Primary Element)', text: 'الرمز الفعلي الممثل للمفهوم.', detail: 'اختيار رمز واحد: Neural Network للذكاء الاصطناعي، Shield للأمن، Checklist للتخطيط.' },
+                        { label: 'مستوى التفاصيل والأسلوب (Style)', text: 'Detail Level & Style Type.', detail: 'تحديد Minimal Details مع اختيار أسلوب صريح: Line Icon, Outline, Glyph, Flat, 3D.' },
+                        { label: 'التناسق الهندسي واللون والخلفية', text: 'Geometry, Colors & Background.', detail: 'تحديد Consistent Stroke, Rounded Corners, Corporate Blue, Transparent Background, Scalable Vector.' }
+                    ]
+                },
+                {
+                    id: 'pitfalls_and_golden_rule',
+                    title: '5. الأخطاء الشائعة والقاعدة الذهبية',
+                    subtitle: 'تجنب المحاذير وضمان سهولة الفهم المباشر',
+                    icon: 'fa-triangle-exclamation',
+                    color: '#e11d48',
+                    description: 'مراجعة الممارسات الخاطئة في تصميم وتوليد الأيقونات وتطبيق معايير الاختبار السريع.',
+                    nodes: [
+                        { label: 'خطأ: الإفرط في التفاصيل', text: 'تحول الأيقونة لرسومات صغيرة غير واضحة.', detail: 'كتابة برومبت يحوي تفاصيل كثيرة تجعل النموذج يدمج مكونات تجعل الأيقونة ضبابية في الأحجام الصغيرة.' },
+                        { label: 'خطأ: اختيار ألوان كثيرة ومتضاربة', text: 'فقدان المرونة والتجانس.', detail: 'الأيقونات أحادية اللون (Monochrome) أو المعتمدة على لون العلامة التجارية هي الأكثر مرونة واحترافية.' },
+                        { label: 'خطأ: توليد كل أيقونة بأسلوب مستقل', text: 'تشتت النظام البصري للمشروع.', detail: 'توليد الأيقونات بشكل فرعي يخلق اختلافات في الوزن البصري وزوايا الحواف بين عناصر المشروع.' },
+                        { label: 'القاعدة الذهبية لتصميم الأيقونة', text: 'إذا احتجت إلى شرح الأيقونة، فأنت لم تصمم أيقونة جيدة!', detail: 'الأيقونة الناجحة يفهم المستخدم وظيفتها بمجرد النظر إليها فوراً دون كتابة نص توضيحي مجاور.' }
+                    ]
+                },
+                {
+                    id: 'practical_examples_workflows',
+                    title: '6. النماذج والتطبيقات العملية',
+                    subtitle: 'تحويل المواصفات إلى أوامر برمجية جاهزة للتوليد',
+                    icon: 'fa-code',
+                    color: '#d97706',
+                    description: 'أمثلة تطبيقية عملية لصياغة برومبت أيقونة فردية أو مجموعة أيقونات متكاملة لمشروع احترافي.',
+                    nodes: [
+                        { label: 'مثال 1: أيقونة الذكاء الاصطناعي (AI Icon)', text: 'توليد أيقونة خطية مفردة للمفهوم.', detail: 'Create a minimal line icon representing artificial intelligence using a neural network concept, clean geometric shapes, corporate blue, transparent background.' },
+                        { label: 'مثال 2: مجموعة أيقونات إدارة المشاريع', text: 'توليد مجموعة كاملة متسقة (Cohesive Icon Set).', detail: 'Create a cohesive icon set for project management including planning, scheduling, risk, budgeting... Minimal outline style, uniform stroke width, rounded corners.' },
+                        { label: 'خطوات سير العمل الهندسي', text: 'تعبئة القالب الهندسي أولاً قبل الصياغة.', detail: '1. حدد المفاهيم 2. اختر الأيقونات 3. ثبت سمات الأسلوب والخطوط 4. ولد المجموعة دفعة واحدة.' },
+                        { label: 'الأيقونة كخطوة من النظام البصري', text: 'التكامل مع كافة وسائط الوحدة السابعة.', detail: 'تضمن الأيقونات اتساق واجهات التطبيقات والمستندات والإنفوجرافيك مع الهوية العامة للمشروع.' }
+                    ]
+                }
+            ]
+        };
+
+        // Render & State Variables
+        let layoutMode = 'radial'; // 'radial' or 'tree'
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX, startY;
+        let expandedNodes = new Set(['root', 'icon_fundamentals', 'simplicity_and_clarity', 'group_consistency', 'icon_prompt_template', 'pitfalls_and_golden_rule', 'practical_examples_workflows']);
+        let currentSlideIndex = 0;
+
+        // Coordinates Storage for Bounding Box fit
+        let renderedCoordinates = [];
+
+        const canvasContainer = document.getElementById('canvasContainer');
+        const nodesContainer = document.getElementById('nodesContainer');
+        const svgLayer = document.getElementById('svgLayer');
+
+        window.addEventListener('load', () => {
+            setupPanZoom();
+            setTimeout(() => {
+                fitToView();
+            }, 100);
+            window.addEventListener('resize', () => renderMap());
+        });
+
+        function setLayoutMode(mode) {
+            layoutMode = mode;
+            document.getElementById('btnRadial').className = mode === 'radial' 
+                ? 'px-2.5 py-1 rounded-md font-medium transition bg-white text-indigo-600 shadow-sm'
+                : 'px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900';
+            
+            document.getElementById('btnTree').className = mode === 'tree' 
+                ? 'px-2.5 py-1 rounded-md font-medium transition bg-white text-indigo-600 shadow-sm'
+                : 'px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900';
+
+            renderMap();
+            setTimeout(fitToView, 50);
+        }
+
+        function renderMap() {
+            nodesContainer.innerHTML = '';
+            svgLayer.innerHTML = '';
+            renderedCoordinates = [];
+
+            nodesContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+
+            if (layoutMode === 'radial') {
+                renderRadialLayout();
+            } else {
+                renderTreeLayout();
+            }
+        }
+
+        // Bi-Lateral Radial Layout with Zero-Collision
+        function renderRadialLayout() {
+            // Center Root Node
+            addNodeCoord(0, 0, 368, 180);
+            createNodeElement({
+                id: mindMapData.id,
+                title: mindMapData.title,
+                subtitle: mindMapData.subtitle,
+                icon: mindMapData.icon,
+                color: mindMapData.color,
+                isRoot: true,
+                x: 0,
+                y: 0
+            });
+
+            const branches = mindMapData.children;
+            
+            // Non-Colliding Sector Map: 3 Branches Right, 3 Branches Left
+            const branchConfigs = [
+                { bx: 540,  by: -760, dir: 1 },  // Branch 0: Icon Fundamentals (Top Right)
+                { bx: 680,  by: 0,    dir: 1 },  // Branch 1: Simplicity & Clarity (Mid Right)
+                { bx: 540,  by: 760,  dir: 1 },  // Branch 2: Group Consistency (Bottom Right)
+                { bx: -540, by: -760, dir: -1 }, // Branch 3: Prompt Template (Top Left)
+                { bx: -680, by: 0,    dir: -1 }, // Branch 4: Pitfalls & Rule (Mid Left)
+                { bx: -540, by: 760,  dir: -1 }  // Branch 5: Practical Workflows (Bottom Left)
+            ];
+
+            branches.forEach((branch, index) => {
+                const config = branchConfigs[index];
+                const bx = config.bx;
+                const by = config.by;
+
+                addNodeCoord(bx, by, 368, 110);
+                drawCurve(0, 0, bx, by, branch.color, 4, false);
+
+                createNodeElement({
+                    id: branch.id,
+                    title: branch.title,
+                    subtitle: branch.subtitle,
+                    icon: branch.icon,
+                    color: branch.color,
+                    isBranch: true,
+                    x: bx,
+                    y: by
+                });
+
+                if (expandedNodes.has(branch.id) && branch.nodes) {
+                    const subNodes = branch.nodes;
+                    const count = subNodes.length;
+                    const stepY = 130; // 130px Y-spacing
+                    const subXOffset = 440; // Horizontal offset
+
+                    subNodes.forEach((node, sIndex) => {
+                        const normIndex = sIndex - (count - 1) / 2;
+                        const ny = by + normIndex * stepY;
+                        
+                        const arcFactor = 1 - Math.pow(normIndex / (count / 2), 2);
+                        const nx = bx + config.dir * (subXOffset + arcFactor * 45);
+
+                        addNodeCoord(nx, ny, 368, 100);
+                        drawCurve(bx, by, nx, ny, branch.color, 2, true);
+
+                        createNodeElement({
+                            id: `${branch.id}_sub_${sIndex}`,
+                            title: node.label,
+                            subtitle: node.text,
+                            color: branch.color,
+                            isLeaf: true,
+                            x: nx,
+                            y: ny,
+                            data: { ...node, category: branch.title, color: branch.color }
+                        });
+                    });
+                }
+            });
+        }
+
+        // Clean Vertical Tree Layout
+        function renderTreeLayout() {
+            let startY = 0;
+            const branchX = 520;
+            const leafX = 1100;
+
+            addNodeCoord(0, 0, 368, 120);
+            createNodeElement({
+                id: mindMapData.id,
+                title: mindMapData.title,
+                subtitle: mindMapData.subtitle,
+                icon: mindMapData.icon,
+                color: mindMapData.color,
+                isRoot: true,
+                x: 0,
+                y: 0
+            });
+
+            mindMapData.children.forEach((branch) => {
+                const subNodes = expandedNodes.has(branch.id) ? (branch.nodes || []) : [];
+                const branchHeight = Math.max(1, subNodes.length) * 130;
+                const branchY = startY + (branchHeight / 2) - 100;
+
+                addNodeCoord(branchX, branchY, 368, 100);
+                drawCurve(0, 0, branchX, branchY, branch.color, 3.5, false);
+
+                createNodeElement({
+                    id: branch.id,
+                    title: branch.title,
+                    subtitle: branch.subtitle,
+                    icon: branch.icon,
+                    color: branch.color,
+                    isBranch: true,
+                    x: branchX,
+                    y: branchY
+                });
+
+                if (subNodes.length > 0) {
+                    subNodes.forEach((node, sIndex) => {
+                        const leafY = startY + (sIndex * 130) - 100;
+                        addNodeCoord(leafX, leafY, 368, 100);
+                        drawCurve(branchX, branchY, leafX, leafY, branch.color, 2, true);
+
+                        createNodeElement({
+                            id: `${branch.id}_sub_${sIndex}`,
+                            title: node.label,
+                            subtitle: node.text,
+                            color: branch.color,
+                            isLeaf: true,
+                            x: leafX,
+                            y: leafY,
+                            data: { ...node, category: branch.title, color: branch.color }
+                        });
+                    });
+                }
+
+                startY += branchHeight + 70;
+            });
+        }
+
+        function addNodeCoord(x, y, w, h) {
+            renderedCoordinates.push({
+                minX: x - w / 2,
+                maxX: x + w / 2,
+                minY: y - h / 2,
+                maxY: y + h / 2
+            });
+        }
+
+        // DOM Node Construction
+        function createNodeElement(node) {
+            const el = document.createElement('div');
+            el.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all';
+            el.style.left = `${node.x}px`;
+            el.style.top = `${node.y}px`;
+
+            if (node.isRoot) {
+                el.innerHTML = `
+                    <div onclick="openRootDetail()" class="node-card bg-slate-900 text-white p-6 rounded-2xl shadow-2xl border-2 border-indigo-500/70 text-center w-64 group">
+                        <div class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-white shadow-lg shadow-indigo-500/40 group-hover:scale-110 transition">
+                            <i class="fa-solid ${node.icon} text-2xl"></i>
+                        </div>
+                        <h2 class="font-bold text-base tracking-wide leading-snug">${node.title}</h2>
+                        <p class="text-xs text-slate-300 mt-1">${node.subtitle}</p>
+                    </div>
+                `;
+            } else if (node.isBranch) {
+                const isExpanded = expandedNodes.has(node.id);
+                el.innerHTML = `
+                    <div onclick="openBranchDetail('${node.id}')" class="node-card bg-white p-4.5 rounded-2xl shadow-md border border-slate-200 text-right w-64 flex items-center gap-3.5 hover:border-slate-400">
+                        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-base font-bold" style="background-color: ${node.color}">
+                            <i class="fa-solid ${node.icon}"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <h3 class="font-bold text-sm text-slate-900 truncate">${node.title}</h3>
+                            <p class="text-xs text-slate-500 truncate mt-0.5">${node.subtitle}</p>
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleBranch('${node.id}')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 flex items-center justify-center text-xs font-bold transition shrink-0">
+                            <i class="fa-solid ${isExpanded ? 'fa-minus' : 'fa-plus'}"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (node.isLeaf) {
+                el.innerHTML = `
+                    <div onclick='openLeafDetail(${JSON.stringify(node.data)})' class="node-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-right w-64 hover:border-slate-400">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${node.color}"></span>
+                            <h4 class="font-bold text-xs text-slate-900 truncate">${node.title}</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-snug line-clamp-2">${node.subtitle}</p>
+                    </div>
+                `;
+            }
+
+            nodesContainer.appendChild(el);
+        }
+
+        // SVG Path Curve Generator
+        function drawCurve(x1, y1, x2, y2, color, width, isDashed) {
+            const sx1 = x1 * zoomLevel + panX;
+            const sy1 = y1 * zoomLevel + panY;
+            const sx2 = x2 * zoomLevel + panX;
+            const sy2 = y2 * zoomLevel + panY;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const dx = sx2 - sx1;
+            const dy = sy2 - sy1;
+            
+            const cx1 = sx1 + dx * 0.45;
+            const cy1 = sy1 + dy * 0.05;
+            const cx2 = sx1 + dx * 0.55;
+            const cy2 = sy2 + dy * 0.95;
+
+            path.setAttribute('d', `M ${sx1} ${sy1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${sx2} ${sy2}`);
+            path.setAttribute('stroke', color);
+            path.setAttribute('stroke-width', width);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '0.45');
+            if (isDashed) {
+                path.setAttribute('stroke-dasharray', '6,6');
+            }
+
+            svgLayer.appendChild(path);
+        }
+
+        // Fit Bounding Box Smartly into Screen Bounds
+        function fitToView() {
+            if (renderedCoordinates.length === 0) return;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+            renderedCoordinates.forEach(c => {
+                if (c.minX < minX) minX = c.minX;
+                if (c.maxX > maxX) maxX = c.maxX;
+                if (c.minY < minY) minY = c.minY;
+                if (c.maxY > maxY) maxY = c.maxY;
+            });
+
+            const padding = 140; // Margin
+            const contentWidth = (maxX - minX) + padding * 2;
+            const contentHeight = (maxY - minY) + padding * 2;
+
+            const viewportWidth = canvasContainer.clientWidth || window.innerWidth;
+            const viewportHeight = canvasContainer.clientHeight || window.innerHeight;
+
+            const scaleX = viewportWidth / contentWidth;
+            const scaleY = viewportHeight / contentHeight;
+
+            zoomLevel = Math.min(Math.min(scaleX, scaleY), 1.0);
+            zoomLevel = Math.max(zoomLevel, 0.15); // Min scale
+
+            const contentCenterX = (minX + maxX) / 2;
+            const contentCenterY = (minY + maxY) / 2;
+
+            panX = (viewportWidth / 2) - (contentCenterX * zoomLevel);
+            panY = (viewportHeight / 2) - (contentCenterY * zoomLevel);
+
+            renderMap();
+        }
+
+        // Pan & Drag Interactions
+        function setupPanZoom() {
+            const startPan = (clientX, clientY) => {
+                isDragging = true;
+                startX = clientX - panX;
+                startY = clientY - panY;
+            };
+
+            const movePan = (clientX, clientY) => {
+                if (!isDragging) return;
+                panX = clientX - startX;
+                panY = clientY - startY;
+                renderMap();
+            };
+
+            const endPan = () => { isDragging = false; };
+
+            canvasContainer.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.node-card')) return;
+                startPan(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mousemove', (e) => movePan(e.clientX, e.clientY));
+            window.addEventListener('mouseup', endPan);
+
+            // Touch Support
+            canvasContainer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && !e.target.closest('.node-card')) {
+                    startPan(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging) {
+                    movePan(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', endPan);
+
+            // Wheel Zoom
+            canvasContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+                zoomLevel = Math.min(Math.max(0.15, zoomLevel * zoomFactor), 2.2);
+                renderMap();
+            }, { passive: false });
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(2.2, zoomLevel * 1.15);
+            renderMap();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(0.15, zoomLevel / 1.15);
+            renderMap();
+        }
+
+        function toggleBranch(id) {
+            if (expandedNodes.has(id)) {
+                expandedNodes.delete(id);
+            } else {
+                expandedNodes.add(id);
+            }
+            renderMap();
+        }
+
+        function toggleExpandAll() {
+            if (expandedNodes.size > 1) {
+                expandedNodes = new Set(['root']);
+                document.getElementById('expandBtnText').textContent = 'توسيع الكل';
+            } else {
+                mindMapData.children.forEach(c => expandedNodes.add(c.id));
+                expandedNodes.add('root');
+                document.getElementById('expandBtnText').textContent = 'طي الكل';
+            }
+            renderMap();
+            setTimeout(fitToView, 50);
+        }
+
+        // Detail Drawer Functions
+        function openRootDetail() {
+            showDrawer(
+                'المحور الرئيسي - الفصل الرابع الوحدة السابعة',
+                mindMapData.title,
+                mindMapData.color,
+                `
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4">
+                    <p class="font-bold text-indigo-900 mb-1">القاعدة الذهبية لهندسة الأيقونات:</p>
+                    <p class="text-indigo-800 italic">"إذا احتجت إلى شرح الأيقونة، فأنت لم تصمم أيقونة جيدة! فالأيقونة الناجحة هي لغة بصرية مختصرة يستطيع المستخدم فهم وظيفتها فور النظر إليها مباشرة، حتى عند عرضها بأحجام صغيرة جداً."</p>
+                </div>
+                <h4 class="font-bold text-slate-900 mb-2">رؤية الفصل الرابع الشاملة:</h4>
+                <p class="mb-4">تغطي هذه الخارطة الأسس الهندسية لإنتاج وتوليد الأيقونات التفاعلية بالذكاء الاصطناعي، بدءاً من تجريد المفهوم، قواعد التبسيط، الحفاظ على الاتساق بين المجموعات، واستخدام القالب الاحترافي الموحد لبناء الأيقونات.</p>
+                <div class="space-y-2">
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-indigo-600 mt-1"></i>
+                        <span>البدء بالمفهوم التجريدي قبل الشكل (Concept-First Thinking).</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-indigo-600 mt-1"></i>
+                        <span>الاتساق في المجموعات (Line Icon, Stroke Width, Corner Radius).</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-indigo-600 mt-1"></i>
+                        <span>تطبيق القالب الاحترافي الموحد لتوليد البرومبتات المتكاملة بخلفيات شفافة.</span>
+                    </div>
+                </div>
+                `
+            );
+        }
+
+        function openBranchDetail(branchId) {
+            const branch = mindMapData.children.find(b => b.id === branchId);
+            if (!branch) return;
+
+            let nodesHTML = branch.nodes.map(n => `
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 mb-2.5">
+                    <h5 class="font-bold text-slate-900 mb-1">${n.label}</h5>
+                    <p class="text-slate-600 text-xs">${n.detail || n.text}</p>
+                </div>
+            `).join('');
+
+            showDrawer(
+                'محور رئيسي في الفصل الرابع',
+                branch.title,
+                branch.color,
+                `
+                <p class="mb-4 text-slate-600">${branch.description}</p>
+                <h4 class="font-bold text-slate-900 mb-3">العناصر والمكونات الفرعية:</h4>
+                ${nodesHTML}
+                `
+            );
+        }
+
+        function openLeafDetail(data) {
+            showDrawer(
+                data.category || 'عنصر فرعي بهندسة الأيقونات',
+                data.label,
+                data.color || '#4f46e5',
+                `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-4">
+                    <h4 class="font-bold text-slate-900 mb-2">الشرح والتحليل الهندسي:</h4>
+                    <p class="text-slate-800 font-semibold mb-2">${data.text}</p>
+                    <p class="text-slate-600 leading-normal">${data.detail}</p>
+                </div>
+                <div class="p-3.5 bg-indigo-50 border border-indigo-200/80 rounded-xl">
+                    <span class="font-bold text-indigo-900 block mb-1">تطبيق عملي للمهندس البصري:</span>
+                    <p class="text-indigo-800">الأيقونة ليست رسماً توضيحياً مصغراً؛ البساطة قوة وليست تقليلاً من الجودة. دع العناصر الثانوية تظهر عند الحاجة في الإنفوجرافيك، واحتفظ بالأيقونة رمزاً صفياً نقياً.</p>
+                </div>
+                `
+            );
+        }
+
+        function showDrawer(category, title, color, content) {
+            document.getElementById('drawerCategory').textContent = category;
+            document.getElementById('drawerTitle').textContent = title;
+            document.getElementById('drawerBadge').style.backgroundColor = color;
+            document.getElementById('drawerBadge').innerHTML = '<i class="fa-solid fa-shapes"></i>';
+            document.getElementById('drawerContent').innerHTML = content;
+
+            document.getElementById('detailDrawer').classList.remove('translate-x-full');
+        }
+
+        function closeDrawer() {
+            document.getElementById('detailDrawer').classList.add('translate-x-full');
+        }
+
+        function handleSearch(query) {
+            if (!query.trim()) {
+                fitToView();
+                return;
+            }
+
+            const q = query.toLowerCase();
+            mindMapData.children.forEach(branch => {
+                const match = branch.nodes.some(n => n.label.toLowerCase().includes(q) || n.text.toLowerCase().includes(q));
+                if (match) {
+                    expandedNodes.add(branch.id);
+                }
+            });
+            renderMap();
+        }
+
+        // Presentation Mode Slide Show
+        function togglePresentationMode() {
+            const overlay = document.getElementById('presentationOverlay');
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                currentSlideIndex = 0;
+                renderSlide();
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        function renderSlide() {
+            const branch = mindMapData.children[currentSlideIndex];
+            document.getElementById('slideIndex').textContent = currentSlideIndex + 1;
+            document.getElementById('totalSlides').textContent = mindMapData.children.length;
+
+            let nodesList = branch.nodes.map(n => `
+                <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <h4 class="font-bold text-indigo-400 text-sm mb-1">${n.label}</h4>
+                    <p class="text-slate-300 text-xs">${n.detail || n.text}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('slideContent').innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg" style="background-color: ${branch.color}">
+                        <i class="fa-solid ${branch.icon}"></i>
+                    </span>
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-slate-400">محور الفصل الرابع ${currentSlideIndex + 1}</span>
+                        <h2 class="text-2xl font-bold text-white">${branch.title}</h2>
+                    </div>
+                </div>
+                <p class="text-slate-300 text-sm mb-6 leading-relaxed">${branch.description}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${nodesList}
+                </div>
+            `;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < mindMapData.children.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        }
+    </script>
+</body>
+</html>

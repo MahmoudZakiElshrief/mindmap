@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خارطة مفاهيم - بروتوكول مراجعة وتحسين مخرجات الذكاء الاصطناعي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Arabic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans Arabic"', 'sans-serif'],
+                    },
+                    width: {
+                        '64': '23rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .bg-grid {
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+        }
+
+        .node-card {
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+            backdrop-filter: blur(12px);
+        }
+        
+        .node-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.14);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-slate-50 text-slate-800 antialiased bg-grid select-none">
+
+    <!-- Top Navigation Header -->
+    <header class="h-16 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-md shadow-emerald-500/20">
+                <i class="fa-solid fa-sliders text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">الوحدة السابعة - الفصل التاسع: بروتوكول مراجعة وتحسين المخرجات (AI Review Protocol)</h1>
+                <p class="text-[11px] text-slate-500 hidden sm:block">MIND MAP DASHBOARD - Diagnostic Protocol, Incremental Refinement, Text, Image, Video, Animation & Audio</p>
+            </div>
+        </div>
+
+        <!-- Toolbar Controls -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Search Bar -->
+            <div class="relative w-48 lg:w-64 hidden md:block">
+                <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="بحث في محاور بروتوكول التحسين..." 
+                    class="w-full pl-3 pr-9 py-1.5 text-xs bg-slate-100 focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-lg outline-none transition-all">
+            </div>
+
+            <!-- View Layout Mode Toggle -->
+            <div class="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center text-xs">
+                <button onclick="setLayoutMode('radial')" id="btnRadial" class="px-2.5 py-1 rounded-md font-medium transition bg-white text-emerald-600 shadow-sm">
+                    <i class="fa-solid fa-circle-nodes ml-1"></i>شعاعي
+                </button>
+                <button onclick="setLayoutMode('tree')" id="btnTree" class="px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900">
+                    <i class="fa-solid fa-sitemap ml-1"></i>هيكلي
+                </button>
+            </div>
+
+            <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
+
+            <!-- Actions -->
+            <button onclick="fitToView()" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition" title="احتواء الكل في الشاشة">
+                <i class="fa-solid fa-expand text-emerald-600"></i>
+                <span class="hidden sm:inline">إعادة ضبط</span>
+            </button>
+            <button onclick="toggleExpandAll()" id="expandBtn" class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-folder-tree text-xs"></i>
+                <span id="expandBtnText" class="hidden sm:inline">طي الكل</span>
+            </button>
+            <button onclick="togglePresentationMode()" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                <i class="fa-solid fa-circle-play text-emerald-400"></i>
+                <span class="hidden md:inline">عرض تقديمى</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 relative flex overflow-hidden">
+        
+        <!-- Interactive Canvas Area -->
+        <main id="canvasContainer" class="flex-1 h-full w-full relative cursor-grab active:cursor-grabbing overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-[1400px] h-[1400px] rounded-full bg-emerald-100/30 blur-3xl opacity-60"></div>
+            </div>
+
+            <!-- SVG Connections Layer -->
+            <svg id="svgLayer" class="absolute inset-0 w-full h-full pointer-events-none z-0"></svg>
+
+            <!-- DOM Nodes Layer -->
+            <div id="nodesContainer" class="absolute inset-0 z-10 origin-top-left"></div>
+
+            <!-- Floating Zoom Tools -->
+            <div class="absolute bottom-6 left-6 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 shadow-lg">
+                <button onclick="zoomIn()" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg text-base font-bold transition" title="تكبير">+</button>
+                <button onclick="zoomOut()" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg text-base font-bold transition" title="تصغير">-</button>
+                <button onclick="fitToView()" class="w-8 h-8 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs font-bold transition" title="توسيط وملاءمة الشاشة">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </button>
+            </div>
+
+            <!-- Legend Overlay -->
+            <div class="absolute bottom-6 right-6 z-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm hidden lg:flex items-center gap-4 text-xs text-slate-600">
+                <span class="font-bold text-slate-800">محاور بروتوكول تحسين المخرجات:</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span> التشخيص الرباعي والمبادئ</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> تحسين المحتوى النصي</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span> تحسين الصور البصرية</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span> تحسين مقاطع الفيديو</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span> تحسين الأنميشن والصوت</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span> القواعد الذهبية الموحدة</span>
+            </div>
+        </main>
+
+        <!-- Right Side Detail Drawer -->
+        <aside id="detailDrawer" class="w-full sm:w-[480px] bg-white border-r border-slate-200 shadow-2xl z-30 flex flex-col transition-all duration-300 transform translate-x-full absolute top-0 bottom-0 right-0">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                <div class="flex items-center gap-2.5">
+                    <span id="drawerBadge" class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"></span>
+                    <div>
+                        <span id="drawerCategory" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">الوحدة 7 - الفصل التاسع</span>
+                        <h2 id="drawerTitle" class="text-base font-bold text-slate-900 leading-tight">--</h2>
+                    </div>
+                </div>
+                <button onclick="closeDrawer()" class="w-8 h-8 rounded-lg hover:bg-slate-200/70 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 flex-1 overflow-y-auto space-y-6 text-slate-700 text-xs leading-relaxed" id="drawerContent">
+                <!-- Dynamic Content -->
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+                <span>انقر على أي عنصر لاستعراض الشرح والتطبيقات الهندسية</span>
+                <button onclick="closeDrawer()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg transition font-semibold">إغلاق</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Presentation Mode Fullscreen Overlay -->
+    <div id="presentationOverlay" class="fixed inset-0 bg-slate-950/95 text-white z-50 hidden flex-col justify-between p-6 sm:p-10 backdrop-blur-xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-300">عرض التقديم - الوحدة 7 الفصل التاسع: بروتوكول مراجعة وتحسين مخرجات الذكاء الاصطناعي</span>
+            </div>
+            <button onclick="togglePresentationMode()" class="text-slate-400 hover:text-white flex items-center gap-2 text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-xmark"></i> إنهاء العرض
+            </button>
+        </div>
+
+        <div id="slideContent" class="max-w-4xl mx-auto w-full py-6 my-auto transition-all duration-300">
+            <!-- Slide HTML -->
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+                <span id="slideIndex">1</span> / <span id="totalSlides">6</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="prevSlide()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-white font-medium flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-right"></i> السابق
+                </button>
+                <button onclick="nextSlide()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-medium flex items-center gap-2 transition">
+                    التالي <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        const mindMapData = {
+            id: 'root',
+            title: 'بروتوكول مراجعة وتحسين المخرجات (AI Output Review & Refinement)',
+            subtitle: 'الوحدة السابعة - الفصل التاسع: التشخيص الرباعي، التحسين التراكمي، وصيغ التعديل لجميع الوسائط',
+            icon: 'fa-sliders',
+            color: '#059669',
+            children: [
+                {
+                    id: 'principles_and_diagnostic_protocol',
+                    title: '1. المبادئ والتشخيص الرباعي',
+                    subtitle: 'المرتكزات العلمية للمراجعة والتعديل الموجه',
+                    icon: 'fa-stethoscope',
+                    color: '#0d9488',
+                    description: 'النسخة الأولى مسودة عمل أولية. التحسين الاحترافي يعتمد على التعديل التراكمي الموجه بدلاً من إعادة الإنتاج الكامل الشامل.',
+                    nodes: [
+                        { label: 'مبدأ التحسين التراكمي', text: 'تعديل العنصر المعيب حصراً دون إعادة بناء المخرج.', detail: 'من الخطأ إعادة توليد المخرج كاملاً عند وجود خلل جزئي؛ المحافظة على العناصر الناجحة تضمن اتساق العمل واستقراره.' },
+                        { label: 'مبدأ التشخيص قبل التعديل', text: 'تحديد المشكلة بدقة بدلاً من الأوصاف الانطباعية.', detail: 'استبدال الكلمات العامة (مثل "الصورة ليست جميلة") بأسئلة تشخيصية محددة: الخلل في الإضاءة؟ الألوان؟ التفاصيل؟' },
+                        { label: 'مبدأ تحديد ما يُحفظ وما يُعدَّل', text: 'فرض قيد صريح يمنع إعادة تغيير الجزء الناجح.', detail: 'تضمين عبارة "مع الحفاظ على باقي العناصر كما هي بدون تغيير" لمنع النموذج من تدمير أجزاء سليمة.' },
+                        { label: 'بروتوكول التشخيص الرباعي', text: '4 مراحل سريعة قبل إرسال أمر التعديل.', detail: '1) نطاق المشكلة (عامة أم موضعية) 2) طبيعتها (بصرية أم وظائفية) 3) نوع التدخل (إصلاح أم تحسين) 4) تقدير الأثر الجانبي.' }
+                    ]
+                },
+                {
+                    id: 'text_refinement_protocol',
+                    title: '2. مراجعة وتحسين النصوص',
+                    subtitle: 'ضبط الأسلوب، البنية، الدقة الواقعية، والطول',
+                    icon: 'fa-file-lines',
+                    color: '#2563eb',
+                    description: 'النصوص تتطلب حذراً خاصاً أثر مخاوف الهلوسة (Hallucination). المراجعة تشمل الأسلوب، البنية، الدقة الواقعية، والمصطلحات.',
+                    nodes: [
+                        { label: 'ملاءمة الأسلوب والنبرة', text: 'تكييف الخطاب مع معرفة وسياق الجمهور.', detail: 'تحديد مستوى الأسلوب (رسمي، شبه رسمي، محادثي) وإصلاح الجفاف أو العامية المفرطة حسب الجهة المستهدفة.' },
+                        { label: 'تسلسل البنية والروابط', text: 'إعادة ترتيب الأفكار لتتدفق منطقياً.', detail: 'معالجة تشتت الأفكار عبر إعادة الترتيب من المقدمة للخاتمة، دون دمج تعديل الأسلوب والترتيب في طلب واحد.' },
+                        { label: 'التحقق من الدقة الواقعية', text: 'مراجعة الأرقام والأسماء والاستشهادات بشرياً.', detail: 'الدقة الواقعية مساحتها بشرية غير قابلة للتفويض الكامل للنموذج لتجنب الوقوع في هلوسة الذكاء الاصطناعي.' },
+                        { label: 'ضبط الطول وحذف التكرار', text: 'تحديد عدد كلمات/أسطر وتوحيد المصطلحات.', detail: 'حذف الجمل المكررة، تحديد طول دقيق، وتوحيد المصطلحات عبر إعداد قائمة مصطلحات موحدة (Glossary).' }
+                    ]
+                },
+                {
+                    id: 'image_refinement_protocol',
+                    title: '3. مراجعة وتحسين الصور البصرية',
+                    subtitle: 'التقييم بمنطق الوظيفة لا الانطباع الفردي',
+                    icon: 'fa-image',
+                    color: '#4f46e5',
+                    description: 'السؤال الحاكم في الصور ليس "هل الصورة جميلة؟" بل "هل تؤدي وظيفتها؟" مع إصلاح الإضاءة والتكوين والتفاصيل الدقيقة.',
+                    nodes: [
+                        { label: 'إصلاح الإضاءة والألوان', text: 'توازن سطوع العنصر الرئيسي ولوحة الألوان.', detail: 'تحسين إضاءة الوجه أو العنصر الأساسي وتوحيد اللوحة اللونية للتوافق مع هوية المشروع البصرية.' },
+                        { label: 'توجيه التركيز والتكوين', text: 'استخدام التباين لبروز العنصر الرئيسي.', detail: 'زيادة إبراز العنصر الأساسي بتقليل تشتيت العناصر الثانوية أو تبسيط الخلفيات المزدحمة دون حذفها بالكامل.' },
+                        { label: 'إصلاح التشريح والنسب', text: 'تصحيح وضعية الأطراف والملامح.', detail: 'معالجة أخطاء اليدين أو نسب الجسم مع فرض الحفاظ التام على باقي الشخصية والتكوين العام.' },
+                        { label: 'زيادة الواقعية والعمق', text: 'تحسين الخامات والانعكاسات بطبيعية.', detail: 'إضافة لمسة احترافية وعمق للمشهد بدون المبالغة في حدة التفاصيل لمنع المظهر المصنوع الاصطناعي.' }
+                    ]
+                },
+                {
+                    id: 'video_refinement_protocol',
+                    title: '4. مراجعة وتحسين مقاطع الفيديو',
+                    subtitle: 'تقييم الحركة، استقرار العناصر، وتتابع المشاهد',
+                    icon: 'fa-video',
+                    color: '#9333ea',
+                    description: 'تحسين الفيديو يتحقق عبر تعديلات موضعية تدريجية: تعديل الحركة أولاً، ثم الكاميرا للإضاءة، ثم الإيقاع العام.',
+                    nodes: [
+                        { label: 'سلاسة الحركة وطبيعتها', text: 'معالجة الحركة المتقطعة أو الآلية.', detail: 'طلب زيادة سلاسة حركة الشخصيات مع الحفاظ على زمن وتكوين اللقطات الحالية.' },
+                        { label: 'ضبط حركة الكاميرا', text: 'تقليل الحركة السريعة أو المشتتة.', detail: 'تهدئة زوايا وحركات الكاميرا لتركيز انتباه المشاهد على الرسالة المحورية دون دوار بصري.' },
+                        { label: 'ثبات الملامح والإضاءة', text: 'اتساق الشخصيات والإضاءة بين المشاهد.', detail: 'توحيد ملامح الوجه والملابس والظروف الضوئية عبر جميع اللقطات لضمان الهوية البصرية.' },
+                        { label: 'الانتقالات والإيقاع الزمني', text: 'تنعيم الانتقالات وموازنة السرعة.', detail: 'استخدام انتقالات بسيطة وتعديل سرعة الإيقاع ليتوافق مع استيعاب المشاهد للمحتوى.' }
+                    ]
+                },
+                {
+                    id: 'animation_and_audio_refinement',
+                    title: '5. مراجعة الأنميشن والهندسة الصوتية',
+                    subtitle: 'اتساق شخصيات الرسوم الموحدة ونقاء الصوت',
+                    icon: 'fa-wand-magic-sparkles',
+                    color: '#e11d48',
+                    description: 'الرسوم المتحركة تعتمد على ثبات أسلوب الرسم والشخصية، بينما هندسة الصوت تضمن نقاء التعليق وتزامنه بدون تشتيت.',
+                    nodes: [
+                        { label: 'ثبات شخصية الرسوم المتحركة', text: 'توحيد شكل الشخصية والأسلوب الفني.', detail: 'الحفاظ على ملامح ونسب ملابس الشخصية والأسلوب الفني عبر كافة المشاهد لمنع تشتت المتلقي.' },
+                        { label: 'تعبيرات الوجه والسلسلة', text: 'ربط تعبيرات الوجه بالسياق السردي.', detail: 'جعل تعبيرات الوجه تعكس المشاعر والموقف بدقة، مع ضبط سرعة حركة الأنميشن لتخدم الرسالة.' },
+                        { label: 'وضوح التعليق ونقاء الصوت', text: 'إزالة الضوضاء والصدى وضبط النبرة.', detail: 'تصفية الصوت وتعديل الإلقاء ليكون بوقفات هادئة مع معالجة النبرة لتلائم طبيعة المادة التعليمية أو الترويجية.' },
+                        { label: 'توازن الموسيقى والتزامن', text: 'خفض الموسيقى وقت الحديث ومطابقة البصري.', detail: 'تطبيق التدرج الصوتي (Ducking) ومزامنة الشرح الصوتي لحظة بلحظة مع ظهور العناصر البصرية.' }
+                    ]
+                },
+                {
+                    id: 'golden_rules_and_summary',
+                    title: '6. القواعد الذهبية والدليل التنفيذي',
+                    subtitle: 'الملخص الموحد لضبط جودة جميع المخرجات التوليدية',
+                    icon: 'fa-award',
+                    color: '#d97706',
+                    description: 'القواعد الذهبية الموحدة التي تحكم عمل المصممين ومنتجي المحتوى المحترفين لتحويل المخرجات إلى نتائج احترافية.',
+                    nodes: [
+                        { label: 'لا تُعد التوليد الكامل', text: 'حدد الخلل واطلب تعديله حصراً.', detail: 'إعادة التوليد الكلي تغامر بفقدان الأجزاء الناجحة؛ التعديل الموجه يضمن التطور التراكمي المريح.' },
+                        { label: 'تشخيص دقيق محدد', text: 'معالجة مشكلة واحدة في كل جولة.', detail: 'التركيز على إصلاح خلل واحد واختبار أثره قبل الانتقال للخطوة التالية يزيد من استقرار النتيجة.' },
+                        { label: 'الصوت الاحترافي لا يلفت النظر', text: 'الصوت يخدم الرسالة ولا يتفاخر بذاته.', detail: 'إذا انصرف انتباه المتلقي إلى جودة الصوت المرتفعة بدلاً من المعنى، فهناك خلل بحاجة لتعديل.' },
+                        { label: 'دورة التحسين المستمر', text: 'النتيجة الاحترافية نتاج تحسينات صغيرة.', detail: 'العمل الاحترافي لا يولد من المحاولة الأولى بل هو محصلة مراجعات نقدية دقيقة وموجهة بعناية.' }
+                    ]
+                }
+            ]
+        };
+
+        // Render & State Variables
+        let layoutMode = 'radial';
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX, startY;
+        let expandedNodes = new Set(['root', 'principles_and_diagnostic_protocol', 'text_refinement_protocol', 'image_refinement_protocol', 'video_refinement_protocol', 'animation_and_audio_refinement', 'golden_rules_and_summary']);
+        let currentSlideIndex = 0;
+        let renderedCoordinates = [];
+
+        const canvasContainer = document.getElementById('canvasContainer');
+        const nodesContainer = document.getElementById('nodesContainer');
+        const svgLayer = document.getElementById('svgLayer');
+
+        window.addEventListener('load', () => {
+            setupPanZoom();
+            setTimeout(() => { fitToView(); }, 100);
+            window.addEventListener('resize', () => renderMap());
+        });
+
+        function setLayoutMode(mode) {
+            layoutMode = mode;
+            document.getElementById('btnRadial').className = mode === 'radial' 
+                ? 'px-2.5 py-1 rounded-md font-medium transition bg-white text-emerald-600 shadow-sm'
+                : 'px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900';
+            
+            document.getElementById('btnTree').className = mode === 'tree' 
+                ? 'px-2.5 py-1 rounded-md font-medium transition bg-white text-emerald-600 shadow-sm'
+                : 'px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900';
+
+            renderMap();
+            setTimeout(fitToView, 50);
+        }
+
+        function renderMap() {
+            nodesContainer.innerHTML = '';
+            svgLayer.innerHTML = '';
+            renderedCoordinates = [];
+
+            nodesContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+
+            if (layoutMode === 'radial') {
+                renderRadialLayout();
+            } else {
+                renderTreeLayout();
+            }
+        }
+
+        function renderRadialLayout() {
+            addNodeCoord(0, 0, 368, 180);
+            createNodeElement({
+                id: mindMapData.id,
+                title: mindMapData.title,
+                subtitle: mindMapData.subtitle,
+                icon: mindMapData.icon,
+                color: mindMapData.color,
+                isRoot: true,
+                x: 0,
+                y: 0
+            });
+
+            const branches = mindMapData.children;
+            const branchConfigs = [
+                { bx: 540,  by: -760, dir: 1 },
+                { bx: 680,  by: 0,    dir: 1 },
+                { bx: 540,  by: 760,  dir: 1 },
+                { bx: -540, by: -760, dir: -1 },
+                { bx: -680, by: 0,    dir: -1 },
+                { bx: -540, by: 760,  dir: -1 }
+            ];
+
+            branches.forEach((branch, index) => {
+                const config = branchConfigs[index];
+                const bx = config.bx;
+                const by = config.by;
+
+                addNodeCoord(bx, by, 368, 110);
+                drawCurve(0, 0, bx, by, branch.color, 4, false);
+
+                createNodeElement({
+                    id: branch.id,
+                    title: branch.title,
+                    subtitle: branch.subtitle,
+                    icon: branch.icon,
+                    color: branch.color,
+                    isBranch: true,
+                    x: bx,
+                    y: by
+                });
+
+                if (expandedNodes.has(branch.id) && branch.nodes) {
+                    const subNodes = branch.nodes;
+                    const count = subNodes.length;
+                    const stepY = 130;
+                    const subXOffset = 440;
+
+                    subNodes.forEach((node, sIndex) => {
+                        const normIndex = sIndex - (count - 1) / 2;
+                        const ny = by + normIndex * stepY;
+                        const arcFactor = 1 - Math.pow(normIndex / (count / 2), 2);
+                        const nx = bx + config.dir * (subXOffset + arcFactor * 45);
+
+                        addNodeCoord(nx, ny, 368, 100);
+                        drawCurve(bx, by, nx, ny, branch.color, 2, true);
+
+                        createNodeElement({
+                            id: `${branch.id}_sub_${sIndex}`,
+                            title: node.label,
+                            subtitle: node.text,
+                            color: branch.color,
+                            isLeaf: true,
+                            x: nx,
+                            y: ny,
+                            data: { ...node, category: branch.title, color: branch.color }
+                        });
+                    });
+                }
+            });
+        }
+
+        function renderTreeLayout() {
+            let startY = 0;
+            const branchX = 520;
+            const leafX = 1100;
+
+            addNodeCoord(0, 0, 368, 120);
+            createNodeElement({
+                id: mindMapData.id,
+                title: mindMapData.title,
+                subtitle: mindMapData.subtitle,
+                icon: mindMapData.icon,
+                color: mindMapData.color,
+                isRoot: true,
+                x: 0,
+                y: 0
+            });
+
+            mindMapData.children.forEach((branch) => {
+                const subNodes = expandedNodes.has(branch.id) ? (branch.nodes || []) : [];
+                const branchHeight = Math.max(1, subNodes.length) * 130;
+                const branchY = startY + (branchHeight / 2) - 100;
+
+                addNodeCoord(branchX, branchY, 368, 100);
+                drawCurve(0, 0, branchX, branchY, branch.color, 3.5, false);
+
+                createNodeElement({
+                    id: branch.id,
+                    title: branch.title,
+                    subtitle: branch.subtitle,
+                    icon: branch.icon,
+                    color: branch.color,
+                    isBranch: true,
+                    x: branchX,
+                    y: branchY
+                });
+
+                if (subNodes.length > 0) {
+                    subNodes.forEach((node, sIndex) => {
+                        const leafY = startY + (sIndex * 130) - 100;
+                        addNodeCoord(leafX, leafY, 368, 100);
+                        drawCurve(branchX, branchY, leafX, leafY, branch.color, 2, true);
+
+                        createNodeElement({
+                            id: `${branch.id}_sub_${sIndex}`,
+                            title: node.label,
+                            subtitle: node.text,
+                            color: branch.color,
+                            isLeaf: true,
+                            x: leafX,
+                            y: leafY,
+                            data: { ...node, category: branch.title, color: branch.color }
+                        });
+                    });
+                }
+
+                startY += branchHeight + 70;
+            });
+        }
+
+        function addNodeCoord(x, y, w, h) {
+            renderedCoordinates.push({
+                minX: x - w / 2,
+                maxX: x + w / 2,
+                minY: y - h / 2,
+                maxY: y + h / 2
+            });
+        }
+
+        function createNodeElement(node) {
+            const el = document.createElement('div');
+            el.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all';
+            el.style.left = `${node.x}px`;
+            el.style.top = `${node.y}px`;
+
+            if (node.isRoot) {
+                el.innerHTML = `
+                    <div onclick="openRootDetail()" class="node-card bg-slate-900 text-white p-6 rounded-2xl shadow-2xl border-2 border-emerald-500/70 text-center w-64 group">
+                        <div class="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-white shadow-lg shadow-emerald-500/40 group-hover:scale-110 transition">
+                            <i class="fa-solid ${node.icon} text-2xl"></i>
+                        </div>
+                        <h2 class="font-bold text-base tracking-wide leading-snug">${node.title}</h2>
+                        <p class="text-xs text-slate-300 mt-1">${node.subtitle}</p>
+                    </div>
+                `;
+            } else if (node.isBranch) {
+                const isExpanded = expandedNodes.has(node.id);
+                el.innerHTML = `
+                    <div onclick="openBranchDetail('${node.id}')" class="node-card bg-white p-4.5 rounded-2xl shadow-md border border-slate-200 text-right w-64 flex items-center gap-3.5 hover:border-slate-400">
+                        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-base font-bold" style="background-color: ${node.color}">
+                            <i class="fa-solid ${node.icon}"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <h3 class="font-bold text-sm text-slate-900 truncate">${node.title}</h3>
+                            <p class="text-xs text-slate-500 truncate mt-0.5">${node.subtitle}</p>
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleBranch('${node.id}')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-600 flex items-center justify-center text-xs font-bold transition shrink-0">
+                            <i class="fa-solid ${isExpanded ? 'fa-minus' : 'fa-plus'}"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (node.isLeaf) {
+                el.innerHTML = `
+                    <div onclick='openLeafDetail(${JSON.stringify(node.data)})' class="node-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-right w-64 hover:border-slate-400">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${node.color}"></span>
+                            <h4 class="font-bold text-xs text-slate-900 truncate">${node.title}</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-snug line-clamp-2">${node.subtitle}</p>
+                    </div>
+                `;
+            }
+
+            nodesContainer.appendChild(el);
+        }
+
+        function drawCurve(x1, y1, x2, y2, color, width, isDashed) {
+            const sx1 = x1 * zoomLevel + panX;
+            const sy1 = y1 * zoomLevel + panY;
+            const sx2 = x2 * zoomLevel + panX;
+            const sy2 = y2 * zoomLevel + panY;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const dx = sx2 - sx1;
+            const dy = sy2 - sy1;
+            
+            const cx1 = sx1 + dx * 0.45;
+            const cy1 = sy1 + dy * 0.05;
+            const cx2 = sx1 + dx * 0.55;
+            const cy2 = sy2 + dy * 0.95;
+
+            path.setAttribute('d', `M ${sx1} ${sy1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${sx2} ${sy2}`);
+            path.setAttribute('stroke', color);
+            path.setAttribute('stroke-width', width);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '0.45');
+            if (isDashed) {
+                path.setAttribute('stroke-dasharray', '6,6');
+            }
+
+            svgLayer.appendChild(path);
+        }
+
+        function fitToView() {
+            if (renderedCoordinates.length === 0) return;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+            renderedCoordinates.forEach(c => {
+                if (c.minX < minX) minX = c.minX;
+                if (c.maxX > maxX) maxX = c.maxX;
+                if (c.minY < minY) minY = c.minY;
+                if (c.maxY > maxY) maxY = c.maxY;
+            });
+
+            const padding = 140;
+            const contentWidth = (maxX - minX) + padding * 2;
+            const contentHeight = (maxY - minY) + padding * 2;
+
+            const viewportWidth = canvasContainer.clientWidth || window.innerWidth;
+            const viewportHeight = canvasContainer.clientHeight || window.innerHeight;
+
+            const scaleX = viewportWidth / contentWidth;
+            const scaleY = viewportHeight / contentHeight;
+
+            zoomLevel = Math.min(Math.min(scaleX, scaleY), 1.0);
+            zoomLevel = Math.max(zoomLevel, 0.15);
+
+            const contentCenterX = (minX + maxX) / 2;
+            const contentCenterY = (minY + maxY) / 2;
+
+            panX = (viewportWidth / 2) - (contentCenterX * zoomLevel);
+            panY = (viewportHeight / 2) - (contentCenterY * zoomLevel);
+
+            renderMap();
+        }
+
+        function setupPanZoom() {
+            const startPan = (clientX, clientY) => {
+                isDragging = true;
+                startX = clientX - panX;
+                startY = clientY - panY;
+            };
+
+            const movePan = (clientX, clientY) => {
+                if (!isDragging) return;
+                panX = clientX - startX;
+                panY = clientY - startY;
+                renderMap();
+            };
+
+            const endPan = () => { isDragging = false; };
+
+            canvasContainer.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.node-card')) return;
+                startPan(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mousemove', (e) => movePan(e.clientX, e.clientY));
+            window.addEventListener('mouseup', endPan);
+
+            canvasContainer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && !e.target.closest('.node-card')) {
+                    startPan(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging) {
+                    movePan(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', endPan);
+
+            canvasContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+                zoomLevel = Math.min(Math.max(0.15, zoomLevel * zoomFactor), 2.2);
+                renderMap();
+            }, { passive: false });
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(2.2, zoomLevel * 1.15);
+            renderMap();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(0.15, zoomLevel / 1.15);
+            renderMap();
+        }
+
+        function toggleBranch(id) {
+            if (expandedNodes.has(id)) {
+                expandedNodes.delete(id);
+            } else {
+                expandedNodes.add(id);
+            }
+            renderMap();
+        }
+
+        function toggleExpandAll() {
+            if (expandedNodes.size > 1) {
+                expandedNodes = new Set(['root']);
+                document.getElementById('expandBtnText').textContent = 'توسيع الكل';
+            } else {
+                mindMapData.children.forEach(c => expandedNodes.add(c.id));
+                expandedNodes.add('root');
+                document.getElementById('expandBtnText').textContent = 'طي الكل';
+            }
+            renderMap();
+            setTimeout(fitToView, 50);
+        }
+
+        function openRootDetail() {
+            showDrawer(
+                'المحور الرئيسي - الفصل التاسع الوحدة السابعة',
+                mindMapData.title,
+                mindMapData.color,
+                `
+                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-4">
+                    <p class="font-bold text-emerald-900 mb-1">الرؤية المحورية لبروتوكول تحسين المخرجات:</p>
+                    <p class="text-emerald-800 italic">"العمل الاحترافي لا يُعاد إنتاجه كاملاً عند ظهور خلل؛ بل يُحوَّل من نتيجة جيدة إلى احترافية عبر سلسلة من التحسينات الصغيرة، الدقيقة، والمدروسة. التشخيص الموجه هو سر الاستقرار."</p>
+                </div>
+                <h4 class="font-bold text-slate-900 mb-2">رؤية الفصل التاسع الشاملة:</h4>
+                <p class="mb-4">يقدم هذا البروتوكول المرجع العلمي والتطبيقي الموحد لمراجعة وتعديل مخرجات الذكاء الاصطناعي عبر كافة الوسائط (نص، صورة، فيديو، رسوم متحركة، وصوت). يهدف إلى تحويل النتائج التوليدية الأولية إلى أعمال عالية الجودة بأسلوب تحسين تراكمي محكوم.</p>
+                <div class="space-y-2">
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-600 mt-1"></i>
+                        <span>اعتماد بروتوكول التشخيص الرباعي قبل إرسال أي طلب تعديل.</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-600 mt-1"></i>
+                        <span>فرض قيود المحافظة على الجزء الناجح لمنع تدمير العناصر السليمة.</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-emerald-600 mt-1"></i>
+                        <span>توجيه نماذج الذكاء الاصطناعي بصيغ تعديل محددة ومجربة لكل نوع وسائط.</span>
+                    </div>
+                </div>
+                `
+            );
+        }
+
+        function openBranchDetail(branchId) {
+            const branch = mindMapData.children.find(b => b.id === branchId);
+            if (!branch) return;
+
+            let nodesHTML = branch.nodes.map(n => `
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 mb-2.5">
+                    <h5 class="font-bold text-slate-900 mb-1">${n.label}</h5>
+                    <p class="text-slate-600 text-xs">${n.detail || n.text}</p>
+                </div>
+            `).join('');
+
+            showDrawer(
+                'محور رئيسي في بروتوكول تحسين المخرجات',
+                branch.title,
+                branch.color,
+                `
+                <p class="mb-4 text-slate-600">${branch.description}</p>
+                <h4 class="font-bold text-slate-900 mb-3">العناصر والمكونات الفرعية:</h4>
+                ${nodesHTML}
+                `
+            );
+        }
+
+        function openLeafDetail(data) {
+            showDrawer(
+                data.category || 'عنصر فرعي ببروتوكول تحسين المخرجات',
+                data.label,
+                data.color || '#059669',
+                `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-4">
+                    <h4 class="font-bold text-slate-900 mb-2">الشرح والتحليل الهندسي:</h4>
+                    <p class="text-slate-800 font-semibold mb-2">${data.text}</p>
+                    <p class="text-slate-600 leading-normal">${data.detail}</p>
+                </div>
+                <div class="p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-xl">
+                    <span class="font-bold text-emerald-900 block mb-1">تطبيق عملي للمراجع المحترف:</span>
+                    <p class="text-emerald-800">حدد دائماً الخلل بدقة (نطاقه وطبيعته نوع التدخل والأثر الجانبي)، ثم صيغ طلب التعديل متضمناً شرط الحفاظ الصريح، مثل: "عدّل [الخلل المحدد حصراً] مع الحفاظ الكامل على [باقي العناصر السليمة] بدون تغيير".</p>
+                </div>
+                `
+            );
+        }
+
+        function showDrawer(category, title, color, content) {
+            document.getElementById('drawerCategory').textContent = category;
+            document.getElementById('drawerTitle').textContent = title;
+            document.getElementById('drawerBadge').style.backgroundColor = color;
+            document.getElementById('drawerBadge').innerHTML = '<i class="fa-solid fa-sliders"></i>';
+            document.getElementById('drawerContent').innerHTML = content;
+
+            document.getElementById('detailDrawer').classList.remove('translate-x-full');
+        }
+
+        function closeDrawer() {
+            document.getElementById('detailDrawer').classList.add('translate-x-full');
+        }
+
+        function handleSearch(query) {
+            if (!query.trim()) {
+                fitToView();
+                return;
+            }
+
+            const q = query.toLowerCase();
+            mindMapData.children.forEach(branch => {
+                const match = branch.nodes.some(n => n.label.toLowerCase().includes(q) || n.text.toLowerCase().includes(q));
+                if (match) {
+                    expandedNodes.add(branch.id);
+                }
+            });
+            renderMap();
+        }
+
+        function togglePresentationMode() {
+            const overlay = document.getElementById('presentationOverlay');
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                currentSlideIndex = 0;
+                renderSlide();
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        function renderSlide() {
+            const branch = mindMapData.children[currentSlideIndex];
+            document.getElementById('slideIndex').textContent = currentSlideIndex + 1;
+            document.getElementById('totalSlides').textContent = mindMapData.children.length;
+
+            let nodesList = branch.nodes.map(n => `
+                <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <h4 class="font-bold text-emerald-400 text-sm mb-1">${n.label}</h4>
+                    <p class="text-slate-300 text-xs">${n.detail || n.text}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('slideContent').innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg" style="background-color: ${branch.color}">
+                        <i class="fa-solid ${branch.icon}"></i>
+                    </span>
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-slate-400">محور الفصل التاسع ${currentSlideIndex + 1}</span>
+                        <h2 class="text-2xl font-bold text-white">${branch.title}</h2>
+                    </div>
+                </div>
+                <p class="text-slate-300 text-sm mb-6 leading-relaxed">${branch.description}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${nodesList}
+                </div>
+            `;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < mindMapData.children.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        }
+    </script>
+</body>
+</html>

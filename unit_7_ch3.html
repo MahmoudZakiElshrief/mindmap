@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خارطة مفاهيم الفصل الثالث - هندسة بناء الصور بالذكاء الاصطناعي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Arabic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans Arabic"', 'sans-serif'],
+                    },
+                    width: {
+                        '64': '23rem', // Explicit 23rem width for zero-collision readability
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .bg-grid {
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+        }
+
+        .node-card {
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+            backdrop-filter: blur(12px);
+        }
+        
+        .node-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.14);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-slate-50 text-slate-800 antialiased bg-grid select-none">
+
+    <!-- Top Navigation Header -->
+    <header class="h-16 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
+                <i class="fa-solid fa-camera-retro text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">الوحدة السابعة - الفصل الثالث: هندسة بناء الصور بالذكاء الاصطناعي</h1>
+                <p class="text-[11px] text-slate-500 hidden sm:block">MIND MAP DASHBOARD - Image Prompt Engineering & Design Templates</p>
+            </div>
+        </div>
+
+        <!-- Toolbar Controls -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Search Bar -->
+            <div class="relative w-48 lg:w-64 hidden md:block">
+                <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="بحث في محاور هندسة الصور..." 
+                    class="w-full pl-3 pr-9 py-1.5 text-xs bg-slate-100 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-lg outline-none transition-all">
+            </div>
+
+            <!-- View Layout Mode Toggle -->
+            <div class="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center text-xs">
+                <button onclick="setLayoutMode('radial')" id="btnRadial" class="px-2.5 py-1 rounded-md font-medium transition bg-white text-blue-600 shadow-sm">
+                    <i class="fa-solid fa-circle-nodes ml-1"></i>شعاعي
+                </button>
+                <button onclick="setLayoutMode('tree')" id="btnTree" class="px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900">
+                    <i class="fa-solid fa-sitemap ml-1"></i>هيكلي
+                </button>
+            </div>
+
+            <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
+
+            <!-- Actions -->
+            <button onclick="fitToView()" class="px-2.5 py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition" title="احتواء الكل في الشاشة">
+                <i class="fa-solid fa-expand text-blue-600"></i>
+                <span class="hidden sm:inline">إعادة ضبط</span>
+            </button>
+            <button onclick="toggleExpandAll()" id="expandBtn" class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-folder-tree text-xs"></i>
+                <span id="expandBtnText" class="hidden sm:inline">طي الكل</span>
+            </button>
+            <button onclick="togglePresentationMode()" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                <i class="fa-solid fa-circle-play text-blue-400"></i>
+                <span class="hidden md:inline">عرض تقديمى</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 relative flex overflow-hidden">
+        
+        <!-- Interactive Canvas Area -->
+        <main id="canvasContainer" class="flex-1 h-full w-full relative cursor-grab active:cursor-grabbing overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-[1400px] h-[1400px] rounded-full bg-blue-100/30 blur-3xl opacity-60"></div>
+            </div>
+
+            <!-- SVG Connections Layer -->
+            <svg id="svgLayer" class="absolute inset-0 w-full h-full pointer-events-none z-0"></svg>
+
+            <!-- DOM Nodes Layer -->
+            <div id="nodesContainer" class="absolute inset-0 z-10 origin-top-left"></div>
+
+            <!-- Floating Control Tools -->
+            <div class="absolute bottom-6 left-6 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 shadow-lg">
+                <button onclick="zoomIn()" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg text-base font-bold transition" title="تكبير">+</button>
+                <button onclick="zoomOut()" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 rounded-lg text-base font-bold transition" title="تصغير">-</button>
+                <button onclick="fitToView()" class="w-8 h-8 flex items-center justify-center text-blue-600 hover:bg-blue-50 rounded-lg text-xs font-bold transition" title="توسيط وملاءمة الشاشة">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </button>
+            </div>
+
+            <!-- Legend Overlay -->
+            <div class="absolute bottom-6 right-6 z-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm hidden lg:flex items-center gap-4 text-xs text-slate-600">
+                <span class="font-bold text-slate-800">محاور الفصل الثالث:</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> أسس بناء المشهد</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span> القالب الاحترافي</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span> الأساليب البصرية</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> زوايا الرؤية</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span> هندسة الإضاءة</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span> التطبيقات العملية</span>
+            </div>
+        </main>
+
+        <!-- Right Side Detail Drawer -->
+        <aside id="detailDrawer" class="w-full sm:w-[480px] bg-white border-r border-slate-200 shadow-2xl z-30 flex flex-col transition-all duration-300 transform translate-x-full absolute top-0 bottom-0 right-0">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                <div class="flex items-center gap-2.5">
+                    <span id="drawerBadge" class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"></span>
+                    <div>
+                        <span id="drawerCategory" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">الوحدة 7 - الفصل الثالث</span>
+                        <h2 id="drawerTitle" class="text-base font-bold text-slate-900 leading-tight">--</h2>
+                    </div>
+                </div>
+                <button onclick="closeDrawer()" class="w-8 h-8 rounded-lg hover:bg-slate-200/70 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 flex-1 overflow-y-auto space-y-6 text-slate-700 text-xs leading-relaxed" id="drawerContent">
+                <!-- Dynamic Content -->
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+                <span>انقر على أي عنصر لاستعراض الشرح والتطبيقات الهندسية</span>
+                <button onclick="closeDrawer()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg transition font-semibold">إغلاق</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Presentation Mode Fullscreen Overlay -->
+    <div id="presentationOverlay" class="fixed inset-0 bg-slate-950/95 text-white z-50 hidden flex-col justify-between p-6 sm:p-10 backdrop-blur-xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+                <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-300">عرض التقديم - الوحدة 7 الفصل الثالث: هندسة بناء الصور (Image Prompt Engineering)</span>
+            </div>
+            <button onclick="togglePresentationMode()" class="text-slate-400 hover:text-white flex items-center gap-2 text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-xmark"></i> إنهاء العرض
+            </button>
+        </div>
+
+        <div id="slideContent" class="max-w-4xl mx-auto w-full py-6 my-auto transition-all duration-300">
+            <!-- Slide HTML -->
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+                <span id="slideIndex">1</span> / <span id="totalSlides">6</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="prevSlide()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-white font-medium flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-right"></i> السابق
+                </button>
+                <button onclick="nextSlide()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-medium flex items-center gap-2 transition">
+                    التالي <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        const mindMapData = {
+            id: 'root',
+            title: 'هندسة بناء الصور (Image Prompt Engineering)',
+            subtitle: 'الوحدة السابعة - الفصل الثالث: تحويل الرؤية إلى مواصفات هندسية',
+            icon: 'fa-camera-retro',
+            color: '#2563eb',
+            children: [
+                {
+                    id: 'scene_building_layers',
+                    title: '1. الأسس الخمسة لبناء المشهد',
+                    subtitle: 'تفكيك البرومبت إلى طبقات معلومات متدرجة',
+                    icon: 'fa-layer-group',
+                    color: '#2563eb',
+                    description: 'التفكير في البرومبت كمجموعة من طبقات المواصفات (Design Specifications) التي تضيف كل منها جزءاً حيوياً للنموذج.',
+                    nodes: [
+                        { label: 'الطبقة 1: موضوع الصورة (Subject)', text: 'تحديد العنصر الرئيسي أو الفكرة الأساسية أولاً.', detail: 'بدلاً من صياغة عامة، حدد الوظيفة والهوية فوراً مثل: Professional instructor explaining AI to students.' },
+                        { label: 'الطبقة 2: بيئة المشهد (Environment)', text: 'تحديد مكان وجود العنصر بدقة لمنع التخمين.', detail: 'وصف المكان المحيط لمنع النموذج من إضافة خلفيات عشوائية مثل: Inside a modern smart classroom equipped with displays.' },
+                        { label: 'الطبقة 3: النشاط والتفاعل (Action)', text: 'تحويل الصورة الثابتة إلى موقف يحكي قصة.', detail: 'وصف حركة أو تفاعل العناصر داخل المكان مثل: Instructor demonstrating AI concepts while students use digital tablets.' },
+                        { label: 'الطبقة 4: الخصائص البصرية (Appearance)', text: 'إضافة الإضاءة والزاوية والألوان والأناقة.', detail: 'تحديد Eye-level perspective, soft natural lighting, blue and gray corporate palette.' },
+                        { label: 'الطبقة 5: متطلبات الجودة (Quality)', text: 'ضبط الوضوح ومنع الحشو والتشتيت البصري.', detail: 'التركيز على المواصفات الحقيقية للنتيجة مثل: High visual clarity, realistic proportions, minimal background distractions.' }
+                    ]
+                },
+                {
+                    id: 'unified_prompt_template',
+                    title: '2. القالب الاحترافي الموحد لبناء البرومبتات',
+                    subtitle: 'هيكل مدروس لضمان استيفاء جميع العناصر الحاكمة',
+                    icon: 'fa-cubes',
+                    color: '#4f46e5',
+                    description: 'قالب هندسي يضمن للمصمم والمستشار البصري عدم نسيان أي عنصر مؤثر في جودة واتساق الصور التوليدية.',
+                    nodes: [
+                        { label: 'عناصر القالب الأساسية', text: 'الموضوع + البيئة + النشاط + الأسلوب البصري.', detail: 'تغطية العناصر الوظيفية الأربعة الأولى لتحديد محتوى الصورة وجوهر الرسالة.' },
+                        { label: 'عناصر ضبط اللقطة', text: 'التكوين + زاوية الرؤية + الإضاءة + لوحة الألوان.', detail: 'توجيه النموذج بدقة سينمائية تحدد كيفية قيادة عين المشاهد ونسبة التركيز.' },
+                        { label: 'محدادت الجودة والواقعية', text: 'درجة الواقعية (Realism) + شروط الجودة الفنية.', detail: 'تحديد التوازنات، الوضوح العالي، وتخصيص المساحات الفارغة لوضع العناوين (Clear space for title).' },
+                        { label: 'قاعدة المرونة والهندسة', text: 'تعبئة المواصفات أولاً ثم صياغة البرومبت.', detail: 'لا تبدأ بكتابة النص مباشرة؛ امأل القالب الهيكلي أولاً ثم حوله إلى جمل دقيقة ومتماسكة.' }
+                    ]
+                },
+                {
+                    id: 'visual_style_gallery',
+                    title: '3. الأساليب البصرية والتصويرية',
+                    subtitle: 'اختيار الأسلوب الخادم للرسالة الوظيفية',
+                    icon: 'fa-swatchbook',
+                    color: '#9333ea',
+                    description: 'اختيار النمط الفني الذي يحقق أهداف المحتوى والجمهور المستهدف بدلاً من الانسياق وراء الأكثر انتشاراً.',
+                    nodes: [
+                        { label: 'Photorealistic (الواقعية الفوتوغرافية)', text: 'محاكاة الواقع بدقة وكفاءة عالية.', detail: 'أنسب لمواقع الشركات الرسمية، التقارير المؤسسية، والواجهات القيادية لبناء الموثوقية.' },
+                        { label: 'Semi-realistic (شبه واقعي)', text: 'توازن بين الواقعية واللمسة الفنية.', detail: 'مناسب للمواد التوضيحية المتقدمة والتصاميم الموجهة للمستهلكين بأسلوب مريح.' },
+                        { label: '3D Illustration (ثلاثي الأبعاد)', text: 'تجسيد عميق وعصري للشخصيات والأفكار.', detail: 'ممتاز للدورات التدريبية التفاعلية والواجهات الرقمية الحديثة.' },
+                        { label: 'Flat Illustration (التصميم المسطح)', text: 'تبسيط وأناقة بصرية بدون حشو.', detail: 'أنسب للإنفوجرافيك، أدلة المستخدم، ومواد الأطفال لسهولة الفهم المباشر.' },
+                        { label: 'Isometric Illustration (أيزومتري)', text: 'منظور ثلاثي الأبعاد بزاوية قياسية ثنائية.', detail: 'أنسب لتمثيل مراكز العمليات، غرف التحكم، وسير العمليات البرمجية والمعقدة.' }
+                    ]
+                },
+                {
+                    id: 'angles_and_perspective',
+                    title: '4. زوايا الرؤية والمنظور السينمائي',
+                    subtitle: 'توجيه كاميرا النموذج لنقطة التركيز المثالية',
+                    icon: 'fa-video',
+                    color: '#059669',
+                    description: 'استخدام لغة المصورين والسينمائيين لتحديد مكان الكاميرا بالنسبة للموضوع البؤري.',
+                    nodes: [
+                        { label: 'Eye-level (منظور مستوى العين)', text: 'رؤية طبيعية ومباشرة تخلق شعوراً بالواقعية.', detail: 'تستخدم لللقطات التعليمية والشخصيات القيادية لمنح انطباع متوازن ومباشر.' },
+                        { label: 'Top view / Aerial (منظور علوي)', text: 'رؤية شاملة لتوزيع العناصر أو المساحات.', detail: 'تستخدم لشرح المخططات، تصميم القاعات، أو توزيع الأجهزة والمساحات المكتبية.' },
+                        { label: 'Front view (لقطة أمامية)', text: 'تركيز صريح ومستقيم على العنصر المركزي.', detail: 'تستخدم لعرض المنتجات أو الأيقونات مع إلغاء الانحراف الجانبي.' },
+                        { label: 'Isometric view (منظور أيزومتري)', text: 'عرض أبعاد المكان بزوايا متوازية.', detail: 'تمنح رؤية ثلاثية الأبعاد واضحة للبنية التحتية وغرف الشبكات والمراكز الأمنية.' },
+                        { label: 'Close-up / Macro (لقطة مقربة)', text: 'عزل الخلفية والتركيز الحاد على دقيقة.', detail: 'تستخدم لإبراز التفاصيل الحساسة كالرقائق الإلكترونية أو تفاصيل الواجهات.' }
+                    ]
+                },
+                {
+                    id: 'lighting_and_atmosphere',
+                    title: '5. هندسة الإضاءة والجو العام',
+                    subtitle: 'بناء الانطباع المريح وتوجيه انتباه المتلقي',
+                    icon: 'fa-sun',
+                    color: '#d97706',
+                    description: 'الإضاءة ليست لمجرد التجميل، بل أداة هندسية لقيادة العين نحو نقطة التركيز وبناء الجو النفسي للمشهد.',
+                    nodes: [
+                        { label: 'Soft lighting (إضاءة ناعمة)', text: 'توزيع متوازن للضوء بدون ظلال حادة.', detail: 'تخلق بيئة مريحة للعين تناسب البيئات التعليمية والأكاديمية والمواد الممتدة.' },
+                        { label: 'Natural daylight (ضوء النهار الطبيعي)', text: 'إشراق واقعي وشعور بالحيوية والمصداقية.', detail: 'أنسب لمكاتب العمل الحديثة، الجلسات التفاعلية، والمشاهد المفتوحة.' },
+                        { label: 'Studio lighting (إضاءة الاستوديو)', text: 'إضاءة احترافية مركزة ونظيفة جداً.', detail: 'تستخدم لإبراز المنتجات أو الأشخاص بدرجة عالية من النقاء والتوازن.' },
+                        { label: 'Cinematic lighting (إضاءة سينمائية)', text: 'تباين درامي وتوظيف للمشهد والظلال.', detail: 'تستخدم في غلاف الكتب القصصية والرؤى المستقبلية لمنح عمق وجاذبية.' }
+                    ]
+                },
+                {
+                    id: 'practical_templates_workflows',
+                    title: '6. التطبيقات العملية والمنهجية التنفيذية',
+                    subtitle: 'من النظريات إلى الصياغات البرمجية الدقيقة',
+                    icon: 'fa-code-branch',
+                    color: '#e11d48',
+                    description: 'تحويل المواصفات الهندسية إلى أوامر برومبت جاهزة مع تطبيق المنهجية التكرارية المتقدمة.',
+                    nodes: [
+                        { label: 'مثال غلاف الفصل (Content Strategist)', text: 'صياغة برومبت وظيفي لغلاف كتاب رسمي.', detail: 'الموضوع: خبير محتوى مع مساعد ذكاء اصطناعي. البيئة: مساحة عمل حديثة. التكوين: هادئ مع ترك مساحة فارغة في الأعلى للعنوان.' },
+                        { label: 'مثال الإنفوجرافيك (Cybersecurity Operations)', text: 'صياغة برومبت أيزومتري لغرفة أمن سيبراني.', detail: 'استخدام Isometric Illustration + Cyan/Blue palette + Minimal distractions لإنتاج شكل تعليمي واضح.' },
+                        { label: 'سؤال المراجعة الهندسي', text: 'هل كل جملة تضيف معلومة يحتاجها النموذج؟', detail: 'تجنب الكلمات الفاخرة غير الخادمة (مثل 8k / Unreal engine) والحذف الفوري لأي جملة لا تغير النتيجة.' },
+                        { label: 'الخلاصة الذهبية لسير العمل', text: 'ماذا أستهدف أن يرى المتلقي؟ وكيف أريده أن يراه؟', detail: 'إذا أجبت عن هذين السؤالين بوضوح، أصبحت كتابة البرومبت خطوة تنفيذية حتمية وليس تجربة عشوائية.' }
+                    ]
+                }
+            ]
+        };
+
+        // Render & State Variables
+        let layoutMode = 'radial'; // 'radial' or 'tree'
+        let zoomLevel = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX, startY;
+        let expandedNodes = new Set(['root', 'scene_building_layers', 'unified_prompt_template', 'visual_style_gallery', 'angles_and_perspective', 'lighting_and_atmosphere', 'practical_templates_workflows']);
+        let currentSlideIndex = 0;
+
+        // Coordinates Storage for Bounding Box fit
+        let renderedCoordinates = [];
+
+        const canvasContainer = document.getElementById('canvasContainer');
+        const nodesContainer = document.getElementById('nodesContainer');
+        const svgLayer = document.getElementById('svgLayer');
+
+        window.addEventListener('load', () => {
+            setupPanZoom();
+            setTimeout(() => {
+                fitToView();
+            }, 100);
+            window.addEventListener('resize', () => renderMap());
+        });
+
+        function setLayoutMode(mode) {
+            layoutMode = mode;
+            document.getElementById('btnRadial').className = mode === 'radial' 
+                ? 'px-2.5 py-1 rounded-md font-medium transition bg-white text-blue-600 shadow-sm'
+                : 'px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900';
+            
+            document.getElementById('btnTree').className = mode === 'tree' 
+                ? 'px-2.5 py-1 rounded-md font-medium transition bg-white text-blue-600 shadow-sm'
+                : 'px-2.5 py-1 rounded-md font-medium text-slate-600 transition hover:text-slate-900';
+
+            renderMap();
+            setTimeout(fitToView, 50);
+        }
+
+        function renderMap() {
+            nodesContainer.innerHTML = '';
+            svgLayer.innerHTML = '';
+            renderedCoordinates = [];
+
+            nodesContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+
+            if (layoutMode === 'radial') {
+                renderRadialLayout();
+            } else {
+                renderTreeLayout();
+            }
+        }
+
+        // Bi-Lateral Radial Layout with Zero-Collision
+        function renderRadialLayout() {
+            // Center Root Node
+            addNodeCoord(0, 0, 368, 180);
+            createNodeElement({
+                id: mindMapData.id,
+                title: mindMapData.title,
+                subtitle: mindMapData.subtitle,
+                icon: mindMapData.icon,
+                color: mindMapData.color,
+                isRoot: true,
+                x: 0,
+                y: 0
+            });
+
+            const branches = mindMapData.children;
+            
+            // Non-Colliding Sector Map: 3 Branches Right, 3 Branches Left
+            const branchConfigs = [
+                { bx: 540,  by: -760, dir: 1 },  // Branch 0: Scene Building (Top Right)
+                { bx: 680,  by: 0,    dir: 1 },  // Branch 1: Prompt Template (Mid Right)
+                { bx: 540,  by: 760,  dir: 1 },  // Branch 2: Visual Styles (Bottom Right)
+                { bx: -540, by: -760, dir: -1 }, // Branch 3: Angles & Perspective (Top Left)
+                { bx: -680, by: 0,    dir: -1 }, // Branch 4: Lighting & Atmosphere (Mid Left)
+                { bx: -540, by: 760,  dir: -1 }  // Branch 5: Practical Workflows (Bottom Left)
+            ];
+
+            branches.forEach((branch, index) => {
+                const config = branchConfigs[index];
+                const bx = config.bx;
+                const by = config.by;
+
+                addNodeCoord(bx, by, 368, 110);
+                drawCurve(0, 0, bx, by, branch.color, 4, false);
+
+                createNodeElement({
+                    id: branch.id,
+                    title: branch.title,
+                    subtitle: branch.subtitle,
+                    icon: branch.icon,
+                    color: branch.color,
+                    isBranch: true,
+                    x: bx,
+                    y: by
+                });
+
+                if (expandedNodes.has(branch.id) && branch.nodes) {
+                    const subNodes = branch.nodes;
+                    const count = subNodes.length;
+                    const stepY = 130; // 130px Y-spacing
+                    const subXOffset = 440; // Horizontal offset
+
+                    subNodes.forEach((node, sIndex) => {
+                        const normIndex = sIndex - (count - 1) / 2;
+                        const ny = by + normIndex * stepY;
+                        
+                        const arcFactor = 1 - Math.pow(normIndex / (count / 2), 2);
+                        const nx = bx + config.dir * (subXOffset + arcFactor * 45);
+
+                        addNodeCoord(nx, ny, 368, 100);
+                        drawCurve(bx, by, nx, ny, branch.color, 2, true);
+
+                        createNodeElement({
+                            id: `${branch.id}_sub_${sIndex}`,
+                            title: node.label,
+                            subtitle: node.text,
+                            color: branch.color,
+                            isLeaf: true,
+                            x: nx,
+                            y: ny,
+                            data: { ...node, category: branch.title, color: branch.color }
+                        });
+                    });
+                }
+            });
+        }
+
+        // Clean Vertical Tree Layout
+        function renderTreeLayout() {
+            let startY = 0;
+            const branchX = 520;
+            const leafX = 1100;
+
+            addNodeCoord(0, 0, 368, 120);
+            createNodeElement({
+                id: mindMapData.id,
+                title: mindMapData.title,
+                subtitle: mindMapData.subtitle,
+                icon: mindMapData.icon,
+                color: mindMapData.color,
+                isRoot: true,
+                x: 0,
+                y: 0
+            });
+
+            mindMapData.children.forEach((branch) => {
+                const subNodes = expandedNodes.has(branch.id) ? (branch.nodes || []) : [];
+                const branchHeight = Math.max(1, subNodes.length) * 130;
+                const branchY = startY + (branchHeight / 2) - 100;
+
+                addNodeCoord(branchX, branchY, 368, 100);
+                drawCurve(0, 0, branchX, branchY, branch.color, 3.5, false);
+
+                createNodeElement({
+                    id: branch.id,
+                    title: branch.title,
+                    subtitle: branch.subtitle,
+                    icon: branch.icon,
+                    color: branch.color,
+                    isBranch: true,
+                    x: branchX,
+                    y: branchY
+                });
+
+                if (subNodes.length > 0) {
+                    subNodes.forEach((node, sIndex) => {
+                        const leafY = startY + (sIndex * 130) - 100;
+                        addNodeCoord(leafX, leafY, 368, 100);
+                        drawCurve(branchX, branchY, leafX, leafY, branch.color, 2, true);
+
+                        createNodeElement({
+                            id: `${branch.id}_sub_${sIndex}`,
+                            title: node.label,
+                            subtitle: node.text,
+                            color: branch.color,
+                            isLeaf: true,
+                            x: leafX,
+                            y: leafY,
+                            data: { ...node, category: branch.title, color: branch.color }
+                        });
+                    });
+                }
+
+                startY += branchHeight + 70;
+            });
+        }
+
+        function addNodeCoord(x, y, w, h) {
+            renderedCoordinates.push({
+                minX: x - w / 2,
+                maxX: x + w / 2,
+                minY: y - h / 2,
+                maxY: y + h / 2
+            });
+        }
+
+        // DOM Node Construction
+        function createNodeElement(node) {
+            const el = document.createElement('div');
+            el.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all';
+            el.style.left = `${node.x}px`;
+            el.style.top = `${node.y}px`;
+
+            if (node.isRoot) {
+                el.innerHTML = `
+                    <div onclick="openRootDetail()" class="node-card bg-slate-900 text-white p-6 rounded-2xl shadow-2xl border-2 border-blue-500/70 text-center w-64 group">
+                        <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-white shadow-lg shadow-blue-500/40 group-hover:scale-110 transition">
+                            <i class="fa-solid ${node.icon} text-2xl"></i>
+                        </div>
+                        <h2 class="font-bold text-base tracking-wide leading-snug">${node.title}</h2>
+                        <p class="text-xs text-slate-300 mt-1">${node.subtitle}</p>
+                    </div>
+                `;
+            } else if (node.isBranch) {
+                const isExpanded = expandedNodes.has(node.id);
+                el.innerHTML = `
+                    <div onclick="openBranchDetail('${node.id}')" class="node-card bg-white p-4.5 rounded-2xl shadow-md border border-slate-200 text-right w-64 flex items-center gap-3.5 hover:border-slate-400">
+                        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-base font-bold" style="background-color: ${node.color}">
+                            <i class="fa-solid ${node.icon}"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <h3 class="font-bold text-sm text-slate-900 truncate">${node.title}</h3>
+                            <p class="text-xs text-slate-500 truncate mt-0.5">${node.subtitle}</p>
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleBranch('${node.id}')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 flex items-center justify-center text-xs font-bold transition shrink-0">
+                            <i class="fa-solid ${isExpanded ? 'fa-minus' : 'fa-plus'}"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (node.isLeaf) {
+                el.innerHTML = `
+                    <div onclick='openLeafDetail(${JSON.stringify(node.data)})' class="node-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-right w-64 hover:border-slate-400">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${node.color}"></span>
+                            <h4 class="font-bold text-xs text-slate-900 truncate">${node.title}</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-snug line-clamp-2">${node.subtitle}</p>
+                    </div>
+                `;
+            }
+
+            nodesContainer.appendChild(el);
+        }
+
+        // SVG Path Curve Generator
+        function drawCurve(x1, y1, x2, y2, color, width, isDashed) {
+            const sx1 = x1 * zoomLevel + panX;
+            const sy1 = y1 * zoomLevel + panY;
+            const sx2 = x2 * zoomLevel + panX;
+            const sy2 = y2 * zoomLevel + panY;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const dx = sx2 - sx1;
+            const dy = sy2 - sy1;
+            
+            const cx1 = sx1 + dx * 0.45;
+            const cy1 = sy1 + dy * 0.05;
+            const cx2 = sx1 + dx * 0.55;
+            const cy2 = sy2 + dy * 0.95;
+
+            path.setAttribute('d', `M ${sx1} ${sy1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${sx2} ${sy2}`);
+            path.setAttribute('stroke', color);
+            path.setAttribute('stroke-width', width);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '0.45');
+            if (isDashed) {
+                path.setAttribute('stroke-dasharray', '6,6');
+            }
+
+            svgLayer.appendChild(path);
+        }
+
+        // Fit Bounding Box Smartly into Screen Bounds
+        function fitToView() {
+            if (renderedCoordinates.length === 0) return;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+            renderedCoordinates.forEach(c => {
+                if (c.minX < minX) minX = c.minX;
+                if (c.maxX > maxX) maxX = c.maxX;
+                if (c.minY < minY) minY = c.minY;
+                if (c.maxY > maxY) maxY = c.maxY;
+            });
+
+            const padding = 140; // Margin
+            const contentWidth = (maxX - minX) + padding * 2;
+            const contentHeight = (maxY - minY) + padding * 2;
+
+            const viewportWidth = canvasContainer.clientWidth || window.innerWidth;
+            const viewportHeight = canvasContainer.clientHeight || window.innerHeight;
+
+            const scaleX = viewportWidth / contentWidth;
+            const scaleY = viewportHeight / contentHeight;
+
+            zoomLevel = Math.min(Math.min(scaleX, scaleY), 1.0);
+            zoomLevel = Math.max(zoomLevel, 0.15); // Min scale
+
+            const contentCenterX = (minX + maxX) / 2;
+            const contentCenterY = (minY + maxY) / 2;
+
+            panX = (viewportWidth / 2) - (contentCenterX * zoomLevel);
+            panY = (viewportHeight / 2) - (contentCenterY * zoomLevel);
+
+            renderMap();
+        }
+
+        // Pan & Drag Interactions
+        function setupPanZoom() {
+            const startPan = (clientX, clientY) => {
+                isDragging = true;
+                startX = clientX - panX;
+                startY = clientY - panY;
+            };
+
+            const movePan = (clientX, clientY) => {
+                if (!isDragging) return;
+                panX = clientX - startX;
+                panY = clientY - startY;
+                renderMap();
+            };
+
+            const endPan = () => { isDragging = false; };
+
+            canvasContainer.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.node-card')) return;
+                startPan(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mousemove', (e) => movePan(e.clientX, e.clientY));
+            window.addEventListener('mouseup', endPan);
+
+            // Touch Support
+            canvasContainer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && !e.target.closest('.node-card')) {
+                    startPan(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging) {
+                    movePan(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', endPan);
+
+            // Wheel Zoom
+            canvasContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+                zoomLevel = Math.min(Math.max(0.15, zoomLevel * zoomFactor), 2.2);
+                renderMap();
+            }, { passive: false });
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(2.2, zoomLevel * 1.15);
+            renderMap();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(0.15, zoomLevel / 1.15);
+            renderMap();
+        }
+
+        function toggleBranch(id) {
+            if (expandedNodes.has(id)) {
+                expandedNodes.delete(id);
+            } else {
+                expandedNodes.add(id);
+            }
+            renderMap();
+        }
+
+        function toggleExpandAll() {
+            if (expandedNodes.size > 1) {
+                expandedNodes = new Set(['root']);
+                document.getElementById('expandBtnText').textContent = 'توسيع الكل';
+            } else {
+                mindMapData.children.forEach(c => expandedNodes.add(c.id));
+                expandedNodes.add('root');
+                document.getElementById('expandBtnText').textContent = 'طي الكل';
+            }
+            renderMap();
+            setTimeout(fitToView, 50);
+        }
+
+        // Detail Drawer Functions
+        function openRootDetail() {
+            showDrawer(
+                'المحور الرئيسي - الفصل الثالث الوحدة السابعة',
+                mindMapData.title,
+                mindMapData.color,
+                `
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4">
+                    <p class="font-bold text-blue-900 mb-1">الرؤية الذهبية لهندسة برومبتات الصور:</p>
+                    <p class="text-blue-800 italic">"يمكن اختصار سير العمل الاحترافي في سؤالين: ماذا أريد أن يرى المتلقي؟ وكيف أريده أن يراه؟، فإذا أجبْتَ عنهما بوضوح، أصبحت كتابة البرومبت خطوة تنفيذية حتمية، وليست تجربة عشوائية."</p>
+                </div>
+                <h4 class="font-bold text-slate-900 mb-2">رؤية الفصل الثالث الشاملة:</h4>
+                <p class="mb-4">يستعرض هذا الفصل المنهجية الهندسية لتحويل الأفكار والتصورات البصرية إلى مواصفات هندسية دقيقة (Design Specifications) تُملأ داخل قالب موحد لتوجيه نماذج الذكاء الاصطناعي بكفاءة متناهية.</p>
+                <div class="space-y-2">
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-blue-600 mt-1"></i>
+                        <span>الطبقات الخمس لبناء المشهد (الموضوع، البيئة، التفاعل، الخصائص، والجودة).</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-blue-600 mt-1"></i>
+                        <span>القالب الاحترافي الموحد لبناء البرومبتات (Professional Image Template).</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-blue-600 mt-1"></i>
+                        <span>تخصيص الأساليب (Photorealistic, Flat, 3D, Isometric) وزوايا الرؤية والإضاءة.</span>
+                    </div>
+                </div>
+                `
+            );
+        }
+
+        function openBranchDetail(branchId) {
+            const branch = mindMapData.children.find(b => b.id === branchId);
+            if (!branch) return;
+
+            let nodesHTML = branch.nodes.map(n => `
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 mb-2.5">
+                    <h5 class="font-bold text-slate-900 mb-1">${n.label}</h5>
+                    <p class="text-slate-600 text-xs">${n.detail || n.text}</p>
+                </div>
+            `).join('');
+
+            showDrawer(
+                'محور رئيسي في الفصل الثالث',
+                branch.title,
+                branch.color,
+                `
+                <p class="mb-4 text-slate-600">${branch.description}</p>
+                <h4 class="font-bold text-slate-900 mb-3">العناصر والمكونات الفرعية:</h4>
+                ${nodesHTML}
+                `
+            );
+        }
+
+        function openLeafDetail(data) {
+            showDrawer(
+                data.category || 'عنصر فرعي بهندسة الصور',
+                data.label,
+                data.color || '#2563eb',
+                `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-4">
+                    <h4 class="font-bold text-slate-900 mb-2">الشرح والتحليل الهندسي:</h4>
+                    <p class="text-slate-800 font-semibold mb-2">${data.text}</p>
+                    <p class="text-slate-600 leading-normal">${data.detail}</p>
+                </div>
+                <div class="p-3.5 bg-blue-50 border border-blue-200/80 rounded-xl">
+                    <span class="font-bold text-blue-900 block mb-1">تطبيق عملي للمهندس البصري:</span>
+                    <p class="text-blue-800">كل جملة في البرومبت يجب أن يكون لها سبب وظيفي صريح. اسأل دائماً: هل هذه الجملة تضيف معلومة يحتاجها النموذج؟ إذا كانت لا تغير النتيجة، فاحذفها فوراً.</p>
+                </div>
+                `
+            );
+        }
+
+        function showDrawer(category, title, color, content) {
+            document.getElementById('drawerCategory').textContent = category;
+            document.getElementById('drawerTitle').textContent = title;
+            document.getElementById('drawerBadge').style.backgroundColor = color;
+            document.getElementById('drawerBadge').innerHTML = '<i class="fa-solid fa-camera"></i>';
+            document.getElementById('drawerContent').innerHTML = content;
+
+            document.getElementById('detailDrawer').classList.remove('translate-x-full');
+        }
+
+        function closeDrawer() {
+            document.getElementById('detailDrawer').classList.add('translate-x-full');
+        }
+
+        function handleSearch(query) {
+            if (!query.trim()) {
+                fitToView();
+                return;
+            }
+
+            const q = query.toLowerCase();
+            mindMapData.children.forEach(branch => {
+                const match = branch.nodes.some(n => n.label.toLowerCase().includes(q) || n.text.toLowerCase().includes(q));
+                if (match) {
+                    expandedNodes.add(branch.id);
+                }
+            });
+            renderMap();
+        }
+
+        // Presentation Mode Slide Show
+        function togglePresentationMode() {
+            const overlay = document.getElementById('presentationOverlay');
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                currentSlideIndex = 0;
+                renderSlide();
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        function renderSlide() {
+            const branch = mindMapData.children[currentSlideIndex];
+            document.getElementById('slideIndex').textContent = currentSlideIndex + 1;
+            document.getElementById('totalSlides').textContent = mindMapData.children.length;
+
+            let nodesList = branch.nodes.map(n => `
+                <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+                    <h4 class="font-bold text-blue-400 text-sm mb-1">${n.label}</h4>
+                    <p class="text-slate-300 text-xs">${n.detail || n.text}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('slideContent').innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg" style="background-color: ${branch.color}">
+                        <i class="fa-solid ${branch.icon}"></i>
+                    </span>
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-slate-400">محور الفصل الثالث ${currentSlideIndex + 1}</span>
+                        <h2 class="text-2xl font-bold text-white">${branch.title}</h2>
+                    </div>
+                </div>
+                <p class="text-slate-300 text-sm mb-6 leading-relaxed">${branch.description}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${nodesList}
+                </div>
+            `;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < mindMapData.children.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        }
+    </script>
+</body>
+</html>
