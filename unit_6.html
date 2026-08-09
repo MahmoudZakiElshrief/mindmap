@@ -68,6 +68,21 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+                /*------------*/
+       #presentationOverlay {
+            overflow-y: auto;
+        }
+        #presentationOverlay > .border-b {
+            flex-shrink: 0;
+        }
+        #presentationOverlay > .border-t {
+            flex-shrink: 0;
+        }
+        #slideContent {
+            overflow-y: auto;
+            min-height: 0;
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-slate-50 text-slate-800 antialiased bg-grid select-none">
